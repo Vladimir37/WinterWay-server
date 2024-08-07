@@ -1,11 +1,15 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text;
 using WinterWay.Data;
 using WinterWay.Models.Database;
+using WinterWay.Filters;
+using WinterWay.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +18,15 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationContext>(options => 
     options.UseNpgsql(connectionString));
 
-builder.Services.AddIdentity<UserModel, IdentityRole>()
+builder.Services.AddIdentity<UserModel, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 0;
+})
     .AddEntityFrameworkStores<ApplicationContext>()
     .AddDefaultTokenProviders();
 
@@ -40,16 +52,22 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidateModelFilter>();
+});
 
 var app = builder.Build();
 
 //Вернуть когда будет https
 //app.UseHttpsRedirection();
 
+app.UseMiddleware<ErrorHandlerMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers()
+    .RequireAuthorization();
 
 app.Run();

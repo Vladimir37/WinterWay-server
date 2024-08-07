@@ -5,8 +5,10 @@ namespace WinterWay.Models.DTOs.Requests
     public class LoginModelDTO
     {
         [Required]
-        public string Username { get; set; } = string.Empty;
+        [StringLength(100, MinimumLength = 4)]
+        public string? Username { get; set; }
         [Required]
-        public string Password { get; set; } = string.Empty;
+        [StringLength (100, MinimumLength = 6)]
+        public string? Password { get; set; }
     }
 }

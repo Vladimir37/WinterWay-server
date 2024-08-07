@@ -5,6 +5,6 @@ namespace WinterWay.Models.Database
 {
     public class UserModel : IdentityUser
     {
-        public ThemeType ThemeType { get; set; } = ThemeType.Light;
+        public ThemeType Theme { get; set; } = ThemeType.Light;
     }
 }

@@ -1,18 +1,17 @@
 ﻿using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.IdentityModel.Tokens;
 using WinterWay.Enums;
 using WinterWay.Models.DTOs.Error;
 using WinterWay.Models.DTOs.Requests;
 using WinterWay.Models.DTOs.Responses;
 using WinterWay.Models.Database;
+using Microsoft.AspNetCore.Authentication;
 
 namespace WinterWay.Controllers
 {
+    [ApiController]
     [Route("/api/[controller]")]
     public class AuthController : ControllerBase
     {
@@ -39,28 +38,31 @@ namespace WinterWay.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginModelDTO loginModel)
         {
-            var user = await _userManager.FindByNameAsync(loginModel.Username);
-            if (user != null && await _userManager.CheckPasswordAsync(user, loginModel.Password))
+            var user = await _userManager.FindByNameAsync(loginModel.Username!);
+            if (user != null && await _userManager.CheckPasswordAsync(user, loginModel.Password!))
             {
                 var authClaims = new[]
                 {
-                    new Claim(ClaimTypes.Name, user.UserName),
                     new Claim(ClaimTypes.NameIdentifier, user.Id),
                 };
 
-                var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                };
 
-                var token = new JwtSecurityToken(
-                    issuer: _config["Jwt:Issuer"],
-                    audience: _config["Jwt:Audience"],
-                    expires: DateTime.Now.AddDays(Convert.ToDouble(_config["Jwt:DurationInDays"])),
-                    claims: authClaims,
-                    signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-                );
+                await _signInManager.SignInWithClaimsAsync(user, authProperties, authClaims);
 
-                return Ok(new LoginTokenDTO(token));
+                return Ok("Successful authorization");
             }
             return Unauthorized(new ApiError(InnerErrors.InvalidUserData, "Invalid user data"));
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return Ok("Successful logout");
         }
 
         [HttpPost("signup")]
@@ -82,24 +84,53 @@ namespace WinterWay.Controllers
             {
                 return Ok("User created");
             }
-            Console.WriteLine(result.Errors);
-            foreach (var error in result.Errors)
-            {
-                Console.WriteLine(error.Description);
-            }
             return BadRequest(new ApiError(InnerErrors.Other, "Signup error"));
+        }
+
+        [HttpPost("edit-user")]
+        public async Task<IActionResult> EditUser([FromBody] EditUserDTO editUserModel)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized(new ApiError(InnerErrors.InvalidUserData, "Invalid user data"));
+            }
+            if (await _userManager.FindByNameAsync(editUserModel.Username!) != null && editUserModel.Username != user.UserName)
+            {
+                return BadRequest(new ApiError(InnerErrors.UsernameAlreadyExists, "Username alreay exists"));
+            }
+            
+            user.Theme = editUserModel.Theme;
+            var resultThemeUpdate = await _userManager.UpdateAsync(user);
+            var resultUsernameUpdate = await _userManager.SetUserNameAsync(user, editUserModel.Username);
+            if (resultUsernameUpdate.Succeeded && resultThemeUpdate.Succeeded)
+            {
+                return Ok("User has been updated");
+            }
+            return BadRequest(new ApiError(InnerErrors.Other, "User edit error"));
+        }
+
+        [HttpGet("access-denied")]
+        [AllowAnonymous]
+        public async Task<IActionResult> AccessDenied()
+        {
+            return Unauthorized(new ApiError(InnerErrors.NotAuthorized, "User is not authorized"));
         }
 
         [HttpGet("user-status")]
         public async Task<IActionResult> UserStatus()
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var userName = User.FindFirst(ClaimTypes.Name)?.Value;
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized(new ApiError(InnerErrors.InvalidUserData, "Invalid user data"));
+            }
 
             return Ok(new
             {
-                userId,
-                userName,
+                id = user.Id,
+                username = user.UserName,
+                theme = user.Theme,
             });
         }
 

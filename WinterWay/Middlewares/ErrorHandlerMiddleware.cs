@@ -24,10 +24,11 @@ namespace WinterWay.Middlewares
             {
                 await context.Response.WriteAsJsonAsync(new ApiError(InnerErrors.UnsupportedMediaType, "Invalid form type"));
             }
-            else if (context.Response.StatusCode == 401) 
-            {
-                await context.Response.WriteAsJsonAsync(new ApiError(InnerErrors.NotAuthorized, "User is not authorized"));
-            }
+            // Uncomment when .NET 10
+            //else if (context.Response.StatusCode == 401) 
+            //{
+            //    await context.Response.WriteAsJsonAsync(new ApiError(InnerErrors.NotAuthorized, "User is not authorized"));
+            //}
         }
     }
 }

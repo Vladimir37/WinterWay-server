@@ -6,6 +6,8 @@ namespace WinterWay.Data
 {
     public class ApplicationContext : IdentityDbContext<UserModel>
     {
+        public DbSet<BoardModel> Boards { get; set; }
+
         public ApplicationContext(DbContextOptions<ApplicationContext> options)
             : base(options)
         {

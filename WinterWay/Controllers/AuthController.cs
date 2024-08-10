@@ -2,12 +2,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
 using WinterWay.Enums;
 using WinterWay.Models.DTOs.Error;
 using WinterWay.Models.DTOs.Requests;
 using WinterWay.Models.DTOs.Responses;
 using WinterWay.Models.Database;
-using Microsoft.AspNetCore.Authentication;
 
 namespace WinterWay.Controllers
 {
@@ -36,10 +36,10 @@ namespace WinterWay.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] LoginModelDTO loginModel)
+        public async Task<IActionResult> Login([FromBody] LoginModelDTO loginForm)
         {
-            var user = await _userManager.FindByNameAsync(loginModel.Username!);
-            if (user != null && await _userManager.CheckPasswordAsync(user, loginModel.Password!))
+            var user = await _userManager.FindByNameAsync(loginForm.Username!);
+            if (user != null && await _userManager.CheckPasswordAsync(user, loginForm.Password!))
             {
                 var authClaims = new[]
                 {
@@ -67,18 +67,18 @@ namespace WinterWay.Controllers
 
         [HttpPost("signup")]
         [AllowAnonymous]
-        public async Task<IActionResult> Signup([FromBody] LoginModelDTO loginModel)
+        public async Task<IActionResult> Signup([FromBody] LoginModelDTO signupForm)
         {
             if (!_registrationIsPossible || (_registrationForOnlyFirst && _userManager.Users.Any()))
             {
                 return StatusCode(403, new ApiError(InnerErrors.RegistrationIsClosed, "Registration is closed"));
             }
-            if (await _userManager.FindByNameAsync(loginModel.Username) != null)
+            if (await _userManager.FindByNameAsync(signupForm.Username) != null)
             {
                 return BadRequest(new ApiError(InnerErrors.UsernameAlreadyExists, "Username alreay exists"));
             }
-            var user = new UserModel { UserName = loginModel.Username };
-            var result = await _userManager.CreateAsync(user, loginModel.Password);
+            var user = new UserModel { UserName = signupForm.Username };
+            var result = await _userManager.CreateAsync(user, signupForm.Password);
 
             if (result.Succeeded)
             {
@@ -88,21 +88,21 @@ namespace WinterWay.Controllers
         }
 
         [HttpPost("edit-user")]
-        public async Task<IActionResult> EditUser([FromBody] EditUserDTO editUserModel)
+        public async Task<IActionResult> EditUser([FromBody] EditUserDTO editUserForm)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 return Unauthorized(new ApiError(InnerErrors.InvalidUserData, "Invalid user data"));
             }
-            if (await _userManager.FindByNameAsync(editUserModel.Username!) != null && editUserModel.Username != user.UserName)
+            if (await _userManager.FindByNameAsync(editUserForm.Username!) != null && editUserForm.Username != user.UserName)
             {
                 return BadRequest(new ApiError(InnerErrors.UsernameAlreadyExists, "Username alreay exists"));
             }
             
-            user.Theme = editUserModel.Theme;
+            user.Theme = editUserForm.Theme;
             var resultThemeUpdate = await _userManager.UpdateAsync(user);
-            var resultUsernameUpdate = await _userManager.SetUserNameAsync(user, editUserModel.Username);
+            var resultUsernameUpdate = await _userManager.SetUserNameAsync(user, editUserForm.Username);
             if (resultUsernameUpdate.Succeeded && resultThemeUpdate.Succeeded)
             {
                 return Ok("User has been updated");
@@ -111,16 +111,16 @@ namespace WinterWay.Controllers
         }
 
         [HttpPost("change-password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO changePasswordModel)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO changePasswordForm)
         {
             var user = await _userManager.GetUserAsync(User);
 
-            if (!await _userManager.CheckPasswordAsync(user, changePasswordModel.OldPassword!))
+            if (!await _userManager.CheckPasswordAsync(user, changePasswordForm.OldPassword!))
             {
                 return BadRequest(new ApiError(InnerErrors.InvalidUserData, "Incorrect password"));
             }
 
-            var result = await _userManager.ChangePasswordAsync(user, changePasswordModel.OldPassword!, changePasswordModel.NewPassword!);
+            var result = await _userManager.ChangePasswordAsync(user, changePasswordForm.OldPassword!, changePasswordForm.NewPassword!);
             if (result.Succeeded)
             {
                 return Ok("Password has been changed");

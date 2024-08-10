@@ -110,6 +110,24 @@ namespace WinterWay.Controllers
             return BadRequest(new ApiError(InnerErrors.Other, "User edit error"));
         }
 
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO changePasswordModel)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (!await _userManager.CheckPasswordAsync(user, changePasswordModel.OldPassword!))
+            {
+                return BadRequest(new ApiError(InnerErrors.InvalidUserData, "Incorrect password"));
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, changePasswordModel.OldPassword!, changePasswordModel.NewPassword!);
+            if (result.Succeeded)
+            {
+                return Ok("Password has been changed");
+            }
+            return BadRequest(new ApiError(InnerErrors.Other, "Password has not been changed"));
+        }
+
         [HttpGet("access-denied")]
         [AllowAnonymous]
         public async Task<IActionResult> AccessDenied()
@@ -121,10 +139,6 @@ namespace WinterWay.Controllers
         public async Task<IActionResult> UserStatus()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return Unauthorized(new ApiError(InnerErrors.InvalidUserData, "Invalid user data"));
-            }
 
             return Ok(new
             {

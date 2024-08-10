@@ -46,11 +46,8 @@ builder.Services.AddControllers(options =>
 
 var app = builder.Build();
 
-//Вернуть когда будет https
+//Uncomment when https will be prepared
 //app.UseHttpsRedirection();
-
-//app.UseAuthentication();
-//app.UseAuthorization();
 
 app.UseMiddleware<ErrorHandlerMiddleware>();
 

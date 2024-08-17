@@ -7,6 +7,9 @@ namespace WinterWay.Data
     public class ApplicationContext : IdentityDbContext<UserModel>
     {
         public DbSet<BoardModel> Boards { get; set; }
+        public DbSet<SprintModel> Sprints { get; set; }
+        public DbSet<SprintResultModel> SprintResults { get; set; }
+        public DbSet<TaskModel> Tasks { get; set; }
 
         public ApplicationContext(DbContextOptions<ApplicationContext> options)
             : base(options)

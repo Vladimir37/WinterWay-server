@@ -36,7 +36,7 @@ namespace WinterWay.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] LoginModelDTO loginForm)
+        public async Task<IActionResult> Login([FromBody] LoginDTO loginForm)
         {
             var user = await _userManager.FindByNameAsync(loginForm.Username!);
             if (user != null && await _userManager.CheckPasswordAsync(user, loginForm.Password!))
@@ -67,7 +67,7 @@ namespace WinterWay.Controllers
 
         [HttpPost("signup")]
         [AllowAnonymous]
-        public async Task<IActionResult> Signup([FromBody] LoginModelDTO signupForm)
+        public async Task<IActionResult> Signup([FromBody] LoginDTO signupForm)
         {
             if (!_registrationIsPossible || (_registrationForOnlyFirst && _userManager.Users.Any()))
             {
@@ -101,6 +101,7 @@ namespace WinterWay.Controllers
             }
             
             user.Theme = editUserForm.Theme;
+            user.AutoCompleteTasks = editUserForm.AutoCompleteTasks;
             var resultThemeUpdate = await _userManager.UpdateAsync(user);
             var resultUsernameUpdate = await _userManager.SetUserNameAsync(user, editUserForm.Username);
             if (resultUsernameUpdate.Succeeded && resultThemeUpdate.Succeeded)

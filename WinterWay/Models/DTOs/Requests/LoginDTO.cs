@@ -2,7 +2,7 @@
 
 namespace WinterWay.Models.DTOs.Requests
 {
-    public class LoginModelDTO
+    public class LoginDTO
     {
         [Required]
         [StringLength(100, MinimumLength = 4)]

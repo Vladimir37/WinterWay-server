@@ -12,5 +12,7 @@ namespace WinterWay.Models.DTOs.Requests
         [Required]
         [EnumValidation(typeof(ThemeType))]
         public ThemeType Theme { get; set; }
+        [Required]
+        public bool AutoCompleteTasks { get; set; }
     }
 }

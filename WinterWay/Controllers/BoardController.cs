@@ -32,10 +32,10 @@ namespace WinterWay.Controllers
                 RollType = createBoardForm.RollType,
                 RollStart = createBoardForm.RollStart,
                 RollDays = createBoardForm.RollDays,
+                CurrentSprintNumber = 0,
                 Color = createBoardForm.Color,
                 Favorite = false,
                 Archived = false,
-                LastImage = null,
                 CreationDate = DateTime.UtcNow,
                 User = user!
             };
@@ -67,9 +67,38 @@ namespace WinterWay.Controllers
             targetBoard.RollDays = editBoardForm.RollDays;
             targetBoard.Color = editBoardForm.Color;
             targetBoard.Favorite = editBoardForm.Favorite;
-            targetBoard.Archived = editBoardForm.Archived;
             _db.SaveChanges();
             return Ok(targetBoard);
+        }
+
+        [HttpPost("archive")]
+        public async Task<IActionResult> ArchiveBoard([FromBody] IdDTO idForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            user = await _db.Users
+                .Include(u => u.Boards)
+                .FirstOrDefaultAsync(u => u.Id == user.Id);
+
+            var targetBoard = user.Boards
+                .Where(b => !b.Archived)
+                .FirstOrDefault(b => b.Id == idForm.Id);
+
+            if (targetBoard == null)
+            {
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Active board does not exists"));
+            }
+
+            if (targetBoard.ActualSprint != null)
+            {
+                targetBoard.ActualSprint.Active = false;
+                targetBoard.ActualSprint.ClosingDate = DateTime.UtcNow;
+                targetBoard.ActualSprintId = null;
+                // generate result
+            }
+            targetBoard.Archived = true;
+            _db.SaveChanges();
+            return Ok("Board has been archived");
         }
 
         [HttpGet("all")]

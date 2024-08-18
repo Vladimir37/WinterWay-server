@@ -5,6 +5,7 @@ using WinterWay.Data;
 using WinterWay.Models.Database;
 using WinterWay.Filters;
 using WinterWay.Middlewares;
+using WinterWay.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,8 @@ builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ValidateModelFilter>();
 });
+
+builder.Services.AddScoped<RollService>();
 
 var app = builder.Build();
 

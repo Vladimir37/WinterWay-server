@@ -10,6 +10,9 @@ namespace WinterWay.Data
         public DbSet<SprintModel> Sprints { get; set; }
         public DbSet<SprintResultModel> SprintResults { get; set; }
         public DbSet<TaskModel> Tasks { get; set; }
+        public DbSet<SubtaskModel> Subtasks { get; set; }
+        public DbSet<TextCounterModel> TextCounters { get; set; }
+        public DbSet<NumericCounter> NumericCounters { get; set; }
 
         public ApplicationContext(DbContextOptions<ApplicationContext> options)
             : base(options)

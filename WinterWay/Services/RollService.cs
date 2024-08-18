@@ -5,6 +5,8 @@ using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace WinterWay.Services
 {
@@ -27,7 +29,7 @@ namespace WinterWay.Services
             _maxOtherBackgroundNum = _config.GetValue<int>("Images:OtherImagesMaxNum");
         }
 
-        public void RollSprint(BoardModel board, List<TaskModel>? spilloverTasks)
+        public int RollSprint(BoardModel board, List<int>? spilloverTasks)
         {
             int lastImage = -1;
             if (board.ActualSprint != null)
@@ -55,9 +57,21 @@ namespace WinterWay.Services
             };
             _db.Sprints.Add(newSprint);
             board.ActualSprint = newSprint;
-            // copy template tasks
-            // copy spillover tasks
             _db.SaveChanges();
+
+            var templateTasks = _db.Tasks
+                .Where(t => t.BoardId == board.Id && t.Sprint == null && t.IsTemplate)
+                .Include(t => t.NumericCounters)
+                .Include(t => t.TextCounters)
+                .Include(t => t.Subtasks)
+                .ToList();
+
+            var clonedTask = templateTasks.Select(t => t.CloneToNewSprint(newSprint)).ToList();
+            _db.Tasks.AddRange(clonedTask);
+
+            _db.SaveChanges();
+
+            return MoveTasksToNewSprint(board, newSprint, spilloverTasks);
         }
 
         public void GenerateResult(SprintModel sprint, int tasksSpill, int tasksToBacklog)
@@ -77,6 +91,42 @@ namespace WinterWay.Services
             _db.SprintResults.Add(result);
             sprint.SprintResult = result;
             _db.SaveChanges();
+        }
+
+        public int MoveTasksToBacklog(BoardModel board, List<int>? tasksToBacklog)
+        {
+            if (tasksToBacklog != null && tasksToBacklog.Count > 0)
+            {
+                var tasks = _db.Tasks
+                    .Where(t => t.Board == board && tasksToBacklog.Contains(t.Id))
+                    .ToList();
+                foreach (var task in tasks)
+                {
+                    task.Sprint = null;
+                    task.Board = null;
+                    task.IsBacklog = true;
+                }
+                _db.SaveChanges();
+                return tasks.Count;
+            }
+            return 0;
+        }
+
+        private int MoveTasksToNewSprint(BoardModel board, SprintModel sprint, List<int>? tasksToNewSprint)
+        {
+            if (tasksToNewSprint != null && tasksToNewSprint.Count > 0)
+            {
+                var tasks = _db.Tasks
+                    .Where(t => t.Board == board && tasksToNewSprint.Contains(t.Id))
+                    .ToList();
+                foreach (var task in tasks)
+                {
+                    task.Sprint = sprint;
+                }
+                _db.SaveChanges();
+                return tasks.Count;
+            }
+            return 0;
         }
 
         private DateTime? GetExpirationDate(DateTime creationDate, int rollDays, RollStart rollStart, RollType rollType)

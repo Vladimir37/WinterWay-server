@@ -6,6 +6,7 @@ using WinterWay.Models.Database;
 using WinterWay.Models.DTOs.Requests;
 using WinterWay.Models.DTOs.Error;
 using WinterWay.Enums;
+using WinterWay.Services;
 
 namespace WinterWay.Controllers
 {
@@ -15,11 +16,13 @@ namespace WinterWay.Controllers
     {
         private readonly ApplicationContext _db;
         private readonly UserManager<UserModel> _userManager;
+        private readonly RollService _rollService;
 
-        public BoardController(UserManager<UserModel> userManager, ApplicationContext db)
+        public BoardController(UserManager<UserModel> userManager, ApplicationContext db, RollService rollService)
         {
             _userManager = userManager;
             _db = db;
+            _rollService = rollService;
         }
 
         [HttpPost("create")]
@@ -51,7 +54,7 @@ namespace WinterWay.Controllers
 
             user = await _db.Users
                 .Include(u => u.Boards)
-                .FirstOrDefaultAsync(u => u.Id == user.Id);
+                .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
             var targetBoard = user.Boards
                 .FirstOrDefault(b => b.Id == editBoardForm.Id);
@@ -78,7 +81,7 @@ namespace WinterWay.Controllers
 
             user = await _db.Users
                 .Include(u => u.Boards)
-                .FirstOrDefaultAsync(u => u.Id == user.Id);
+                .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
             var targetBoard = user.Boards
                 .Where(b => !b.Archived)
@@ -93,22 +96,113 @@ namespace WinterWay.Controllers
             {
                 targetBoard.ActualSprint.Active = false;
                 targetBoard.ActualSprint.ClosingDate = DateTime.UtcNow;
+                _rollService.GenerateResult(targetBoard.ActualSprint, 0, 0);
                 targetBoard.ActualSprintId = null;
-                // generate result
             }
             targetBoard.Archived = true;
             _db.SaveChanges();
-            return Ok("Board has been archived");
+            return Ok(targetBoard);
         }
 
-        [HttpGet("all")]
+        [HttpPost("unarchive")]
+        public async Task<IActionResult> UnarchiveBoard([FromBody] IdDTO idForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            user = await _db.Users
+                .Include(u => u.Boards)
+                .FirstOrDefaultAsync(u => u.Id == user!.Id);
+
+            var targetBoard = user.Boards
+                .Where(b => b.Archived)
+                .FirstOrDefault(b => b.Id == idForm.Id);
+
+            if (targetBoard == null)
+            {
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Archive board does not exists"));
+            }
+
+            targetBoard.Archived = false;
+            _db.SaveChanges();
+            return Ok(targetBoard);
+        }
+
+        [HttpPost("roll")]
+        public async Task<IActionResult> Roll(RollDTO rollForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            user = await _db.Users
+                .Include(u => u.Boards)
+                .FirstOrDefaultAsync(u => u.Id == user!.Id);
+
+            var targetBoard = user!.Boards
+                .Where(b => b.Archived)
+                .FirstOrDefault(b => b.Id == rollForm.BoardId);
+
+            if (targetBoard == null)
+            {
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Active board does not exists"));
+            }
+
+            var previousSprint = targetBoard.ActualSprint;
+
+            int backlogTasks = _rollService.MoveTasksToBacklog(targetBoard, rollForm.TasksToBacklog);
+            int spilloverTasks = _rollService.RollSprint(targetBoard, rollForm.TasksSpill);
+            if (previousSprint != null)
+            {
+                _rollService.GenerateResult(previousSprint, spilloverTasks, backlogTasks);
+            }
+            return Ok(targetBoard.ActualSprint);
+        }
+
+        [HttpPost("delete")]
+        public async Task<IActionResult> RemoveBoard([FromBody] IdDTO idForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            user = await _db.Users
+                .Include(u => u.Boards)
+                .FirstOrDefaultAsync(u => u.Id == user!.Id);
+
+            var targetBoard = user.Boards
+                .Where(b => b.Archived)
+                .FirstOrDefault(b => b.Id == idForm.Id);
+
+            if (targetBoard == null)
+            {
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Archive board does not exists"));
+            }
+
+            _db.Boards.Remove(targetBoard);
+            _db.SaveChanges();
+            return Ok("Board has been deleted");
+        }
+
+        [HttpGet("all-boards")]
         public async Task<IActionResult> GetAllBoards()
         {
             var user = await _userManager.GetUserAsync(User);
 
             user = await _db.Users
                 .Include(u => u.Boards)
-                .FirstOrDefaultAsync(u => u.Id == user.Id);
+                .ThenInclude(b => b.ActualSprint)
+                .FirstOrDefaultAsync(u => u.Id == user!.Id);
+
+            return Ok(user!.Boards.ToList());
+        }
+
+        [HttpGet("all-sprints")]
+        public async Task<IActionResult> GetAllSprintsInBoard([FromBody] IdDTO idForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            user = await _db.Users
+                .Include(u => u.Boards.Where(b => b.Id == idForm.Id))
+                .ThenInclude(b => b.ActualSprint)
+                .Include(u => u.Boards)
+                .ThenInclude(b => b.AllSprints)
+                .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
             return Ok(user!.Boards.ToList());
         }

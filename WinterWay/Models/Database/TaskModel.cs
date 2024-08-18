@@ -6,13 +6,13 @@ namespace WinterWay.Models.Database
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         public TaskType Type { get; set; }
         public bool IsTemplate { get; set; }
         public bool IsBacklog { get; set; }
         public bool IsDone { get; set; }
         public bool AutoComplete { get; set; }
-        public string Color { get; set; }
+        public string Color { get; set; } = string.Empty;
         public int MaxCounter { get; set; }
         public DateTime CreationDate { get; set; }
 
@@ -20,5 +20,32 @@ namespace WinterWay.Models.Database
         public BoardModel? Board { get; set; }
         public int? SprintId { get; set; }
         public SprintModel? Sprint { get; set; }
+
+        public List<SubtaskModel> Subtasks { get; set; } = new List<SubtaskModel>();
+        public List<TextCounterModel> TextCounters { get; set; } = new List<TextCounterModel>();
+        public List<NumericCounter> NumericCounters { get; set; } = new List<NumericCounter>();
+
+        public TaskModel CloneToNewSprint(SprintModel sprint)
+        {
+            return new TaskModel
+            {
+                Name = Name,
+                Description = Description,
+                Type = Type,
+                IsTemplate = false,
+                IsBacklog = false,
+                IsDone = false,
+                AutoComplete = AutoComplete,
+                Color = Color,
+                MaxCounter = MaxCounter,
+                CreationDate = DateTime.UtcNow,
+                Board = Board,
+                Sprint = sprint,
+
+                Subtasks = Subtasks.Select(s => s.CloneToNewTask()).ToList(),
+                TextCounters = TextCounters.Select(t => t.CloneToNewTask()).ToList(),
+                NumericCounters = NumericCounters.Select(n => n.CloneToNewTask()).ToList(),
+            };
+        }
     }
 }

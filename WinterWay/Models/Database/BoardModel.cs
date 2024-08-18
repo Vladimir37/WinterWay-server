@@ -22,6 +22,6 @@ namespace WinterWay.Models.Database
         public int? ActualSprintId { get; set; }
         public SprintModel? ActualSprint { get; set; }
         public List<SprintModel> AllSprints { get; set; } = new List<SprintModel>();
-
+        public List<TaskModel> AllTasks { get; set; } = new List<TaskModel>();
     }
 }

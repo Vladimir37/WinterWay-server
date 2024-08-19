@@ -176,7 +176,7 @@ namespace WinterWay.Services
             };
         }
 
-        private int SelectImageForSprint(RollType rollType, DateTime creationDate, int lastImage)
+        public int SelectImageForSprint(RollType rollType, DateTime creationDate, int lastImage)
         {
             if (rollType == RollType.Day)
             {

@@ -11,5 +11,6 @@
         InvalidUserData = 6,
         InvalidForm = 7,
         ElementNotFound = 8,
+        CannotChangeFixedBackground = 9,
     }
 }

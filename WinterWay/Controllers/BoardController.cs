@@ -37,6 +37,7 @@ namespace WinterWay.Controllers
                 RollDays = createBoardForm.RollDays,
                 CurrentSprintNumber = 0,
                 Color = createBoardForm.Color,
+                IsBacklog = false,
                 Favorite = false,
                 Archived = false,
                 CreationDate = DateTime.UtcNow,
@@ -56,8 +57,10 @@ namespace WinterWay.Controllers
                 .Include(u => u.Boards)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
-            var targetBoard = user.Boards
-                .FirstOrDefault(b => b.Id == editBoardForm.Id);
+            var targetBoard = user!.Boards
+                .Where(b => b.Id == editBoardForm.Id)
+                .Where(b => !b.IsBacklog)
+                .FirstOrDefault();
 
             if (targetBoard == null)
             {
@@ -85,6 +88,7 @@ namespace WinterWay.Controllers
 
             var targetBoard = user.Boards
                 .Where(b => !b.Archived)
+                .Where(b => !b.IsBacklog)
                 .FirstOrDefault(b => b.Id == idForm.Id);
 
             if (targetBoard == null)
@@ -115,6 +119,7 @@ namespace WinterWay.Controllers
 
             var targetBoard = user.Boards
                 .Where(b => b.Archived)
+                .Where(b => !b.IsBacklog)
                 .FirstOrDefault(b => b.Id == idForm.Id);
 
             if (targetBoard == null)
@@ -134,10 +139,13 @@ namespace WinterWay.Controllers
 
             user = await _db.Users
                 .Include(u => u.Boards)
+                .Include(u => u.BacklogSprint)
+                .ThenInclude(s => s.Board)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
             var targetBoard = user!.Boards
                 .Where(b => b.Archived)
+                .Where(b => !b.IsBacklog)
                 .FirstOrDefault(b => b.Id == rollForm.BoardId);
 
             if (targetBoard == null)
@@ -147,7 +155,7 @@ namespace WinterWay.Controllers
 
             var previousSprint = targetBoard.ActualSprint;
 
-            int backlogTasks = _rollService.MoveTasksToBacklog(targetBoard, rollForm.TasksToBacklog);
+            int backlogTasks = _rollService.MoveTasksToBacklog(targetBoard, user.BacklogSprint, rollForm.TasksToBacklog);
             int spilloverTasks = _rollService.RollSprint(targetBoard, rollForm.TasksSpill);
             if (previousSprint != null)
             {
@@ -167,6 +175,7 @@ namespace WinterWay.Controllers
 
             var targetBoard = user.Boards
                 .Where(b => b.Archived)
+                .Where(b => !b.IsBacklog)
                 .FirstOrDefault(b => b.Id == idForm.Id);
 
             if (targetBoard == null)

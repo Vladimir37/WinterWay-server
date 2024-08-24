@@ -1,16 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using WinterWay.Enums;
 
 namespace WinterWay.Models.DTOs.Requests
 {
-    public class CreateTaskDTO
+    public class EditTaskDTO
     {
+        [Required]
+        public int Id { get; set; }
         [Required]
         public string Name { get; set; }
         public string Description { get; set; } = string.Empty;
         public string Color { get; set; } = string.Empty;
+        public bool AutoComplete { get; set; }
+        public int MaxCounter { get; set; }
 
-        public int? BoardId { get; set; }
-        public int? SprintId { get; set; }
     }
 }

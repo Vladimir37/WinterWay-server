@@ -8,6 +8,8 @@ namespace WinterWay.Models.Database
         public ThemeType Theme { get; set; } = ThemeType.Light;
         public bool AutoCompleteTasks { get; set; } = false;
 
+        public int BacklogSprintId { get; set; }
+        public SprintModel BacklogSprint { get; set; }
         public List<BoardModel> Boards { get; set; } = new List<BoardModel>();
     }
 }

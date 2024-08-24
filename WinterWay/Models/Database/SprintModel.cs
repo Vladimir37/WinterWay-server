@@ -15,7 +15,6 @@ namespace WinterWay.Models.Database
 
         public int BoardId { get; set; }
         public BoardModel Board { get; set; }
-        public int SprintResultId { get; set; }
         public SprintResultModel? SprintResult { get; set; }
         public List<TaskModel> Tasks { get; set; }
     }

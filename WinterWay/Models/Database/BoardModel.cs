@@ -12,6 +12,7 @@ namespace WinterWay.Models.Database
         public int RollDays { get; set; }
         public int CurrentSprintNumber { get; set; }
         public string? Color { get; set; }
+        public bool IsBacklog { get; set; }
         public bool Favorite { get; set; }
         public bool Archived { get; set; }
         public DateTime CreationDate { get; set; }

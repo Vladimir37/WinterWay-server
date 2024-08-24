@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database;
+using WinterWay.Models.DTOs.Error;
 using WinterWay.Models.DTOs.Requests;
 
 namespace WinterWay.Controllers
@@ -42,7 +44,13 @@ namespace WinterWay.Controllers
                     .FirstOrDefault();
             }
 
-            // todo - return error if board/sprint sended but not found
+            if (
+                (createTaskForm.BoardId != null && targetBoard == null) ||
+                (createTaskForm.SprintId != null && targetSprint == null)
+            )
+            {
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Board or sprint does not exists"));
+            }
 
             var creationDate = DateTime.UtcNow;
             var newTask = new TaskModel
@@ -50,14 +58,54 @@ namespace WinterWay.Controllers
                 Name = createTaskForm.Name,
                 Description = createTaskForm.Description,
                 Type = TaskType.Default,
-                IsTemplate = createTaskForm.SprintId == null,
-                IsBacklog = createTaskForm.SprintId == null && createTaskForm.BoardId == null,
+                IsTemplate = targetSprint == null,
                 IsDone = false,
                 AutoComplete = user!.AutoCompleteTasks,
                 Color = createTaskForm.Color,
                 MaxCounter = 0,
                 CreationDate = creationDate,
+
+                Board = targetBoard,
+                Sprint = targetSprint,
             };
+
+            _db.Tasks.Add(newTask);
+            _db.SaveChanges();
+            return Ok(newTask);
+        }
+
+        [HttpPost("edit")]
+        public async Task<IActionResult> EditTask([FromBody] EditTaskDTO editTaskForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            // todo user board
+            //var targetTask = _db.Tasks
+            //    .
+            var targetTask = _db.Tasks
+                .Include(t => t.Board)
+                .ThenInclude(b => b.User)
+                .Where(t => t.Id == editTaskForm.Id && t.Board.UserId == user!.Id)
+                .FirstOrDefault();
+
+            if (targetTask == null)
+            {
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Task does not exists"));
+            }
+
+            targetTask.Name = editTaskForm.Name;
+            targetTask.Description = editTaskForm.Description;
+            targetTask.Color = editTaskForm.Color;
+            targetTask.AutoComplete = editTaskForm.AutoComplete;
+            targetTask.MaxCounter = editTaskForm.MaxCounter;
+            _db.SaveChanges();
+            return Ok(targetTask);
+        }
+
+        [HttpPost("move")]
+        public async Task<IActionResult> MoveTaskToOtherSprint([FromBody] MoveTaskDTO moveTaskForm)
+        {
+            //
         }
     }
 }

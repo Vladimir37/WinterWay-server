@@ -36,7 +36,10 @@ namespace WinterWay.Controllers
 
             var targetSprint = _db.Sprints
                 .Include(s => s.Board)
-                .Where(s => s.Id == editSprintForm.Id && s.Board.User.Id == user!.Id && s.Active)
+                .Where(s => s.Id == editSprintForm.Id)
+                .Where(s => s.Board.User.Id == user!.Id)
+                .Where(s => !s.Board.IsBacklog)
+                .Where(s => s.Active)
                 .FirstOrDefault();
 
             if (targetSprint == null)
@@ -60,7 +63,10 @@ namespace WinterWay.Controllers
 
             var targetSprint = _db.Sprints
                 .Include(s => s.Board)
-                .Where(s => s.Id == idForm.Id && s.Board.User.Id == user!.Id && s.Active)
+                .Where(s => s.Id == idForm.Id)
+                .Where(s => s.Board.User.Id == user!.Id)
+                .Where(s => !s.Board.IsBacklog)
+                .Where(s => s.Active)
                 .FirstOrDefault();
 
             if (targetSprint == null)
@@ -91,7 +97,10 @@ namespace WinterWay.Controllers
 
             var targetSprint = _db.Sprints
                 .Include(s => s.Board)
-                .Where(s => s.Id == idForm.Id && s.Board.User.Id == user!.Id && !s.Active)
+                .Where(s => s.Id == idForm.Id)
+                .Where(s => s.Board.User.Id == user!.Id)
+                .Where(s => !s.Board.IsBacklog)
+                .Where(s => !s.Active)
                 .FirstOrDefault();
 
             if (targetSprint == null)

@@ -9,7 +9,6 @@ namespace WinterWay.Models.Database
         public string Description { get; set; } = string.Empty;
         public TaskType Type { get; set; }
         public bool IsTemplate { get; set; }
-        public bool IsBacklog { get; set; }
         public bool IsDone { get; set; }
         public bool AutoComplete { get; set; }
         public string Color { get; set; } = string.Empty;
@@ -33,7 +32,6 @@ namespace WinterWay.Models.Database
                 Description = Description,
                 Type = Type,
                 IsTemplate = false,
-                IsBacklog = false,
                 IsDone = false,
                 AutoComplete = AutoComplete,
                 Color = Color,

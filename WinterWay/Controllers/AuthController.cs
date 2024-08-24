@@ -77,7 +77,38 @@ namespace WinterWay.Controllers
             {
                 return BadRequest(new ApiError(InnerErrors.UsernameAlreadyExists, "Username alreay exists"));
             }
-            var user = new UserModel { UserName = signupForm.Username };
+
+            var currentDate = DateTime.UtcNow;
+            var backlogBoard = new BoardModel
+            {
+                Name = "Backlog",
+                RollType = RollType.None,
+                RollStart = RollStart.StartDate,
+                RollDays = 0,
+                CurrentSprintNumber = 0,
+                Color = "#000000",
+                IsBacklog = true,
+                Favorite = false,
+                Archived = false,
+                CreationDate = currentDate,
+            };
+            var backlogSprint = new SprintModel
+            {
+                Name = "Backlog",
+                Active = true,
+                Image = 0,
+                CreationDate = currentDate,
+                ExpirationDate = null,
+                ClosingDate = null,
+                Number = 0,
+                Board = backlogBoard,
+            };
+
+            var user = new UserModel { 
+                UserName = signupForm.Username,
+                BacklogSprint = backlogSprint,
+            };
+
             var result = await _userManager.CreateAsync(user, signupForm.Password);
 
             if (result.Succeeded)

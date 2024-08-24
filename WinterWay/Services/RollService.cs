@@ -93,7 +93,7 @@ namespace WinterWay.Services
             _db.SaveChanges();
         }
 
-        public int MoveTasksToBacklog(BoardModel board, List<int>? tasksToBacklog)
+        public int MoveTasksToBacklog(BoardModel board, SprintModel backlogSprint, List<int>? tasksToBacklog)
         {
             if (tasksToBacklog != null && tasksToBacklog.Count > 0)
             {
@@ -102,9 +102,8 @@ namespace WinterWay.Services
                     .ToList();
                 foreach (var task in tasks)
                 {
-                    task.Sprint = null;
-                    task.Board = null;
-                    task.IsBacklog = true;
+                    task.Sprint = backlogSprint;
+                    task.Board = backlogSprint.Board;
                 }
                 _db.SaveChanges();
                 return tasks.Count;

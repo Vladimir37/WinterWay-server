@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using WinterWay.Enums;
 
 namespace WinterWay.Models.DTOs.Requests
 {

@@ -1,6 +1,6 @@
 ﻿namespace WinterWay.Models.Database
 {
-    public class NumericCounter
+    public class NumericCounterModel
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -8,9 +8,9 @@
         public int TaskId { get; set; }
         public TaskModel Task { get; set; }
 
-        public NumericCounter CloneToNewTask()
+        public NumericCounterModel CloneToNewTask()
         {
-            return new NumericCounter
+            return new NumericCounterModel
             {
                 Name = Name,
             };

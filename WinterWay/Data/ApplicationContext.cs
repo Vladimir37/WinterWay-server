@@ -12,7 +12,7 @@ namespace WinterWay.Data
         public DbSet<TaskModel> Tasks { get; set; }
         public DbSet<SubtaskModel> Subtasks { get; set; }
         public DbSet<TextCounterModel> TextCounters { get; set; }
-        public DbSet<NumericCounter> NumericCounters { get; set; }
+        public DbSet<NumericCounterModel> NumericCounters { get; set; }
 
         public ApplicationContext(DbContextOptions<ApplicationContext> options)
             : base(options)

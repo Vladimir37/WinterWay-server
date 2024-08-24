@@ -15,14 +15,14 @@ namespace WinterWay.Models.Database
         public int MaxCounter { get; set; }
         public DateTime CreationDate { get; set; }
 
-        public int? BoardId { get; set; }
-        public BoardModel? Board { get; set; }
+        public int BoardId { get; set; }
+        public BoardModel Board { get; set; }
         public int? SprintId { get; set; }
         public SprintModel? Sprint { get; set; }
 
         public List<SubtaskModel> Subtasks { get; set; } = new List<SubtaskModel>();
         public List<TextCounterModel> TextCounters { get; set; } = new List<TextCounterModel>();
-        public List<NumericCounter> NumericCounters { get; set; } = new List<NumericCounter>();
+        public NumericCounterModel? NumericCounter { get; set; }
 
         public TaskModel CloneToNewSprint(SprintModel sprint)
         {
@@ -42,7 +42,7 @@ namespace WinterWay.Models.Database
 
                 Subtasks = Subtasks.Select(s => s.CloneToNewTask()).ToList(),
                 TextCounters = TextCounters.Select(t => t.CloneToNewTask()).ToList(),
-                NumericCounters = NumericCounters.Select(n => n.CloneToNewTask()).ToList(),
+                NumericCounter = NumericCounter != null ? NumericCounter.CloneToNewTask() : null,
             };
         }
     }

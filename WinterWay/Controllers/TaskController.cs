@@ -30,22 +30,23 @@ namespace WinterWay.Controllers
             BoardModel? targetBoard = null;
             SprintModel? targetSprint = null;
 
-            if (createTaskForm.BoardId != null)
-            {
-                targetBoard = _db.Boards
-                    .Where(b => b.UserId == user!.Id && b.Id == createTaskForm.BoardId && !b.Archived)
-                    .FirstOrDefault();
-            }
+            targetBoard = _db.Boards
+                .Where(b => b.UserId == user!.Id)
+                .Where(b => b.Id == createTaskForm.BoardId)
+                .Where(b => !b.Archived)
+                .FirstOrDefault();
 
             if (targetBoard != null && createTaskForm.SprintId != null)
             {
                 targetSprint = _db.Sprints
-                    .Where(s => s.BoardId == targetBoard.Id && s.Id == createTaskForm.SprintId && s.Active)
+                    .Where(s => s.BoardId == targetBoard.Id)
+                    .Where(s => s.Id == createTaskForm.SprintId)
+                    .Where(s => s.Active)
                     .FirstOrDefault();
             }
 
             if (
-                (createTaskForm.BoardId != null && targetBoard == null) ||
+                targetBoard == null ||
                 (createTaskForm.SprintId != null && targetSprint == null)
             )
             {
@@ -79,13 +80,10 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            // todo user board
-            //var targetTask = _db.Tasks
-            //    .
             var targetTask = _db.Tasks
                 .Include(t => t.Board)
-                .ThenInclude(b => b.User)
-                .Where(t => t.Id == editTaskForm.Id && t.Board.UserId == user!.Id)
+                .Where(t => t.Id == editTaskForm.Id)
+                .Where(t => t.Board.UserId == user!.Id)
                 .FirstOrDefault();
 
             if (targetTask == null)
@@ -105,7 +103,149 @@ namespace WinterWay.Controllers
         [HttpPost("move")]
         public async Task<IActionResult> MoveTaskToOtherSprint([FromBody] MoveTaskDTO moveTaskForm)
         {
-            //
+            var user = await _userManager.GetUserAsync(User);
+
+            var targetTask = _db.Tasks
+                .Include(t => t.Board)
+                .Where(t => t.Id == moveTaskForm.TaskId)
+                .Where(t => t.Board.UserId == user!.Id)
+                .FirstOrDefault();
+
+            var isBoardExists = _db.Boards
+                .Where(b => b.Id == moveTaskForm.BoardId)
+                .Where(b => b.UserId == user!.Id)
+                .Any();
+            var isSprintExists = _db.Sprints
+                .Include(s => s.Board)
+                .Where(s => s.Id == moveTaskForm.SprintId)
+                .Where(s => s.Active)
+                .Where(s => s.Board.UserId == user!.Id)
+                .Any();
+
+            if (!isBoardExists || !isSprintExists || targetTask == null)
+            {
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Board, sprint or task does not exists"));
+            }
+
+            targetTask.BoardId = moveTaskForm.BoardId;
+            targetTask.SprintId = moveTaskForm.SprintId;
+            _db.SaveChanges();
+            return Ok(targetTask);
+        }
+
+        [HttpPost("change-status")]
+        public async Task<IActionResult> ChangeTaskStatus([FromBody] ChangeTaskStatusDTO changeStatusForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var targetTask = _db.Tasks
+                .Include(t => t.Board)
+                .Where(t => t.Id == changeStatusForm.TaskId)
+                .Where(t => t.Board.UserId == user!.Id)
+                .FirstOrDefault();
+
+            if (targetTask == null)
+            {
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Task does not exists"));
+            }
+
+            targetTask.IsDone = changeStatusForm.Status;
+            _db.SaveChanges();
+            return Ok(targetTask);
+        }
+
+        [HttpPost("change-type")]
+        public async Task<IActionResult> ChangeTaskType([FromBody] ChangeTaskTypeDTO changeTypeForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var targetTask = _db.Tasks
+                .Include(t => t.Board)
+                .Where(t => t.Id == changeTypeForm.TaskId)
+                .Where(t => t.Board.UserId == user!.Id)
+                .FirstOrDefault();
+
+            if (targetTask == null)
+            {
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Task does not exists"));
+            }
+
+            targetTask.Type = changeTypeForm.TaskType;
+            targetTask.MaxCounter = changeTypeForm.MaxValue;
+            _db.SaveChanges();
+            return Ok(targetTask);
+        }
+
+        [HttpPost("remove")]
+        public async Task<IActionResult> RemoveTask([FromBody] IdDTO idForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var targetTask = _db.Tasks
+                .Include(t => t.Board)
+                .Where(t => t.Id == idForm.Id)
+                .Where(t => t.Board.UserId == user!.Id)
+                .FirstOrDefault();
+
+            if (targetTask == null)
+            {
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Task does not exists"));
+            }
+
+            _db.Tasks.Remove(targetTask);
+            return Ok("Task has been deleted");
+        }
+
+        [HttpGet("all-in-sprint")]
+        public async Task<IActionResult> GetAllTasksInSprint([FromBody] IdDTO idForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var targetSprintExists = _db.Sprints
+                .Include(s => s.Board)
+                .Where(s => s.Board.UserId == user!.Id)
+                .Where(s => s.Id == idForm.Id)
+                .Any();
+
+            if (!targetSprintExists)
+            {
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Sprint does not exists"));
+            }
+
+            var targetTasks = _db.Tasks
+                .Where(t => t.SprintId == idForm.Id)
+                .Include(t => t.Subtasks)
+                .Include(t => t.TextCounters)
+                .Include(t => t.NumericCounter)
+                .ToList();
+
+            return Ok(targetTasks);
+        }
+
+        [HttpGet("all-on-board")]
+        public async Task<IActionResult> GetAllTasksOnBoard([FromBody] IdDTO idForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var targetBoardExists = _db.Boards
+                .Where(s => s.UserId == user!.Id)
+                .Where(s => s.Id == idForm.Id)
+                .Any();
+
+            if (!targetBoardExists)
+            {
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Sprint does not exists"));
+            }
+
+            var targetTasks = _db.Tasks
+                .Where(t => t.BoardId == idForm.Id)
+                .Where(t => t.SprintId == null)
+                .Include(t => t.Subtasks)
+                .Include(t => t.TextCounters)
+                .Include(t => t.NumericCounter)
+                .ToList();
+
+            return Ok(targetTasks);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace WinterWay.Controllers
                 Favorite = false,
                 Archived = false,
                 CreationDate = DateTime.UtcNow,
-                User = user!
+                UserId = user!.Id,
             };
             _db.Boards.Add(newBoard);
             _db.SaveChanges();
@@ -86,7 +86,7 @@ namespace WinterWay.Controllers
                 .Include(u => u.Boards)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
-            var targetBoard = user.Boards
+            var targetBoard = user!.Boards
                 .Where(b => !b.Archived)
                 .Where(b => !b.IsBacklog)
                 .FirstOrDefault(b => b.Id == idForm.Id);
@@ -173,7 +173,7 @@ namespace WinterWay.Controllers
                 .Include(u => u.Boards)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
-            var targetBoard = user.Boards
+            var targetBoard = user!.Boards
                 .Where(b => b.Archived)
                 .Where(b => !b.IsBacklog)
                 .FirstOrDefault(b => b.Id == idForm.Id);

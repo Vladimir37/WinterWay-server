@@ -124,6 +124,7 @@ namespace WinterWay.Controllers
 
             var targetSprint = _db.Sprints
                 .Include(s => s.Board)
+                .Include(s => s.SprintResult)
                 .Where(s => s.Id == idForm.Id)
                 .Where(s => s.Board.UserId == user!.Id)
                 .Where(s => !s.Active)

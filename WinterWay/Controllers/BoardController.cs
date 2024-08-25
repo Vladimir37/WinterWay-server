@@ -211,6 +211,7 @@ namespace WinterWay.Controllers
                 .ThenInclude(b => b.ActualSprint)
                 .Include(u => u.Boards)
                 .ThenInclude(b => b.AllSprints)
+                .ThenInclude(s => s.SprintResult)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
             return Ok(user!.Boards.ToList());

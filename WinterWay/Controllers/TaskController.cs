@@ -172,6 +172,18 @@ namespace WinterWay.Controllers
 
             targetTask.Type = changeTypeForm.TaskType;
             targetTask.MaxCounter = changeTypeForm.MaxValue;
+            
+            if (changeTypeForm.TaskType == TaskType.NumericCounter && targetTask.NumericCounter == null)
+            {
+                var newNumericCounter = new NumericCounterModel
+                {
+                    Name = "New numeric counter",
+                    Task = targetTask,
+                    Value = 0
+                };
+                targetTask.NumericCounter = newNumericCounter;
+            }
+
             _db.SaveChanges();
             return Ok(targetTask);
         }

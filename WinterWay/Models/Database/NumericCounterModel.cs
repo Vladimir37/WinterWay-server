@@ -3,7 +3,8 @@
     public class NumericCounterModel
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int Value { get; set; }
 
         public int TaskId { get; set; }
         public TaskModel Task { get; set; }

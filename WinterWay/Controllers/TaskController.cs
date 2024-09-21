@@ -6,6 +6,7 @@ using WinterWay.Enums;
 using WinterWay.Models.Database;
 using WinterWay.Models.DTOs.Error;
 using WinterWay.Models.DTOs.Requests;
+using WinterWay.Services;
 
 namespace WinterWay.Controllers
 {
@@ -15,10 +16,12 @@ namespace WinterWay.Controllers
     {
         private readonly ApplicationContext _db;
         private readonly UserManager<UserModel> _userManager;
+        private readonly CompleteTaskService _completeTaskService;
 
-        public TaskController(UserManager<UserModel> userManager, ApplicationContext db)
+        public TaskController(UserManager<UserModel> userManager, CompleteTaskService completeTaskService, ApplicationContext db)
         {
             _userManager = userManager;
+            _completeTaskService = completeTaskService;
             _db = db;
         }
 
@@ -65,6 +68,7 @@ namespace WinterWay.Controllers
                 Color = createTaskForm.Color,
                 MaxCounter = 0,
                 CreationDate = creationDate,
+                ClosingDate = null,
 
                 Board = targetBoard,
                 Sprint = targetSprint,
@@ -149,8 +153,7 @@ namespace WinterWay.Controllers
                 return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Task does not exists"));
             }
 
-            targetTask.IsDone = changeStatusForm.Status;
-            _db.SaveChanges();
+            _completeTaskService.ChangeStatus(targetTask, changeStatusForm.Status);
             return Ok(targetTask);
         }
 

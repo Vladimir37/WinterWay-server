@@ -46,6 +46,7 @@ builder.Services.AddControllers(options =>
 });
 
 builder.Services.AddScoped<RollService>();
+builder.Services.AddScoped<CompleteTaskService>();
 
 var app = builder.Build();
 

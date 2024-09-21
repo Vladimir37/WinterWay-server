@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
 using WinterWay.Enums;
+using WinterWay.Services;
 using WinterWay.Models.Database;
 using WinterWay.Models.DTOs.Error;
 using WinterWay.Models.DTOs.Requests;
@@ -15,11 +16,13 @@ namespace WinterWay.Controllers
     {
         private readonly ApplicationContext _db;
         private readonly UserManager<UserModel> _userManager;
+        private readonly CompleteTaskService _completeTaskService;
 
-        public CounterController(UserManager<UserModel> userManager, ApplicationContext db)
+        public CounterController(UserManager<UserModel> userManager, ApplicationContext db, CompleteTaskService completeTaskService)
         {
             _userManager = userManager;
             _db = db;
+            _completeTaskService = completeTaskService;
         }
 
         [HttpPost("create-subtask")]
@@ -48,7 +51,7 @@ namespace WinterWay.Controllers
 
             _db.Subtasks.Add(newSubtask);
             _db.SaveChanges();
-            return Ok(newSubtask);
+            return Ok(targetTask);
         }
 
         [HttpPost("edit-subtask")]
@@ -70,7 +73,7 @@ namespace WinterWay.Controllers
 
             targetSubtask.Text = editSubtaskForm.Text;
             _db.SaveChanges();
-            return Ok(targetSubtask);
+            return Ok(targetSubtask.Task);
         }
 
         [HttpPost("change-subtask-status")]
@@ -92,7 +95,14 @@ namespace WinterWay.Controllers
 
             targetSubtask.IsDone = changeStatusForm.Status;
             _db.SaveChanges();
-            return Ok(targetSubtask);
+
+            if (changeStatusForm.Status)
+            {
+                var finalTask = _completeTaskService.CheckAutocompleteStatus(targetSubtask.Task);
+                return Ok(finalTask);
+            }
+
+            return Ok(targetSubtask.Task);
         }
 
         [HttpPost("change-subtasks-order")]
@@ -137,7 +147,7 @@ namespace WinterWay.Controllers
 
             _db.Subtasks.Remove(targetSubtask);
             _db.SaveChanges();
-            return Ok("Subtask has been deleted");
+            return Ok(targetSubtask.Task);
         }
 
         [HttpPost("create-text-counter")]
@@ -165,7 +175,7 @@ namespace WinterWay.Controllers
 
             _db.TextCounters.Add(newTextCounter);
             _db.SaveChanges();
-            return Ok(newTextCounter);
+            return Ok(targetTask);
         }
 
         [HttpPost("edit-text-counter")]
@@ -187,7 +197,10 @@ namespace WinterWay.Controllers
 
             targetTextCounter.Text = editTextCounterForm.Text;
             _db.SaveChanges();
-            return Ok(targetTextCounter);
+
+            var finalTask = _completeTaskService.CheckAutocompleteStatus(targetTextCounter.Task);
+
+            return Ok(finalTask);
         }
 
         [HttpPost("change-text-counters-order")]
@@ -232,7 +245,7 @@ namespace WinterWay.Controllers
 
             _db.TextCounters.Remove(targetTextCounter);
             _db.SaveChanges();
-            return Ok("Subtask has been deleted");
+            return Ok(targetTextCounter.Task);
         }
 
         [HttpPost("edit-numeric-counter")]
@@ -254,7 +267,7 @@ namespace WinterWay.Controllers
 
             targetNumericCounter.Name = editNumericCounterForm.Name;
             _db.SaveChanges();
-            return Ok(targetNumericCounter);
+            return Ok(targetNumericCounter.Task);
         }
 
         [HttpPost("change-numeric-counter-value")]
@@ -276,7 +289,8 @@ namespace WinterWay.Controllers
 
             targetNumericCounter.Value = changeNumericCounterValueForm.Value;
             _db.SaveChanges();
-            return Ok(targetNumericCounter);
+            var finalTask = _completeTaskService.CheckAutocompleteStatus(targetNumericCounter.Task);
+            return Ok(finalTask);
         }
     }
 }

@@ -14,6 +14,7 @@ namespace WinterWay.Models.Database
         public string Color { get; set; } = string.Empty;
         public int MaxCounter { get; set; }
         public DateTime CreationDate { get; set; }
+        public DateTime? ClosingDate { get; set; }
 
         public int BoardId { get; set; }
         public BoardModel Board { get; set; }

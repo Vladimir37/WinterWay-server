@@ -1,12 +1,8 @@
-﻿using System;
-using System.Globalization;
-using System.Drawing;
+﻿using System.Globalization;
 using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace WinterWay.Services
 {
@@ -61,7 +57,7 @@ namespace WinterWay.Services
 
             var templateTasks = _db.Tasks
                 .Where(t => t.BoardId == board.Id && t.Sprint == null && t.IsTemplate)
-                .Include(t => t.NumericCounters)
+                .Include(t => t.NumericCounter)
                 .Include(t => t.TextCounters)
                 .Include(t => t.Subtasks)
                 .ToList();

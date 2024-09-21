@@ -1,4 +1,6 @@
-﻿namespace WinterWay.Models.Database
+﻿using System.Text.Json.Serialization;
+
+namespace WinterWay.Models.Database
 {
     public class SprintResultModel
     {
@@ -10,6 +12,7 @@
         public int TasksToBacklog { get; set; }
 
         public int SprintId { get; set; }
+        [JsonIgnore]
         public SprintModel Sprint { get; set; }
     }
 }

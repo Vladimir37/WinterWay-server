@@ -139,12 +139,13 @@ namespace WinterWay.Controllers
 
             user = await _db.Users
                 .Include(u => u.Boards)
+                .ThenInclude(b => b.ActualSprint)
                 .Include(u => u.BacklogSprint)
                 .ThenInclude(s => s.Board)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
             var targetBoard = user!.Boards
-                .Where(b => b.Archived)
+                .Where(b => !b.Archived)
                 .Where(b => !b.IsBacklog)
                 .FirstOrDefault(b => b.Id == rollForm.BoardId);
 
@@ -155,7 +156,7 @@ namespace WinterWay.Controllers
 
             var previousSprint = targetBoard.ActualSprint;
 
-            int backlogTasks = _rollService.MoveTasksToBacklog(targetBoard, user.BacklogSprint, rollForm.TasksToBacklog);
+            int backlogTasks = _rollService.MoveTasksToBacklog(targetBoard, user.BacklogSprint!, rollForm.TasksToBacklog);
             int spilloverTasks = _rollService.RollSprint(targetBoard, rollForm.TasksSpill);
             if (previousSprint != null)
             {

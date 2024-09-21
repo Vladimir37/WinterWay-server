@@ -135,11 +135,15 @@ namespace WinterWay.Services
                     RollType.None => null,
                     RollType.Day => creationDate.AddDays(1),
                     RollType.Week => creationDate.AddDays(daysUntilNextMonday == 0 ? 7 : daysUntilNextMonday),
-                    RollType.Month => new DateTime(creationDate.Year, creationDate.Month, 1).AddMonths(1),
-                    RollType.Year => new DateTime(creationDate.Year + 1),
+                    RollType.Month => new DateTime(creationDate.Year, creationDate.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(1),
+                    RollType.Year => new DateTime(creationDate.Year + 1, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     RollType.Custom => creationDate.AddDays(rollDays),
                     _ => null,
                 };
+                if (expirationDate != null)
+                {
+                    expirationDate = expirationDate.Value.Date;
+                }
             }
             else
             {

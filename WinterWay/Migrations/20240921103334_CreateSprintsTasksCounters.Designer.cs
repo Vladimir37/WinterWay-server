@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WinterWay.Data;
@@ -11,9 +12,11 @@ using WinterWay.Data;
 namespace WinterWay.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20240921103334_CreateSprintsTasksCounters")]
+    partial class CreateSprintsTasksCounters
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -429,7 +432,7 @@ namespace WinterWay.Migrations
                     b.Property<bool>("AutoCompleteTasks")
                         .HasColumnType("boolean");
 
-                    b.Property<int?>("BacklogSprintId")
+                    b.Property<int>("BacklogSprintId")
                         .HasColumnType("integer");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -638,7 +641,9 @@ namespace WinterWay.Migrations
                 {
                     b.HasOne("WinterWay.Models.Database.SprintModel", "BacklogSprint")
                         .WithMany()
-                        .HasForeignKey("BacklogSprintId");
+                        .HasForeignKey("BacklogSprintId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("BacklogSprint");
                 });

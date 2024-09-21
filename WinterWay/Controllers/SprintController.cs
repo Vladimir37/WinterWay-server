@@ -105,7 +105,7 @@ namespace WinterWay.Controllers
 
             if (targetSprint == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Active sprint does not exists"));
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Archive sprint does not exists"));
             }
 
             _db.Sprints.Remove(targetSprint);

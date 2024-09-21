@@ -22,6 +22,17 @@ namespace WinterWay.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<BoardModel>()
+                .HasMany(b => b.AllSprints)
+                .WithOne(s => s.Board)
+                .HasForeignKey(s => s.BoardId);
+
+            builder.Entity<BoardModel>()
+                .HasOne(b => b.ActualSprint)
+                .WithMany()
+                .HasForeignKey(s => s.ActualSprintId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

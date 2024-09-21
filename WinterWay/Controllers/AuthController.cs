@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using WinterWay.Enums;
+using WinterWay.Data;
 using WinterWay.Models.DTOs.Error;
 using WinterWay.Models.DTOs.Requests;
 using WinterWay.Models.DTOs.Responses;
@@ -15,6 +16,7 @@ namespace WinterWay.Controllers
     [Route("/api/[controller]")]
     public class AuthController : ControllerBase
     {
+        private readonly ApplicationContext _db;
         private readonly UserManager<UserModel> _userManager;
         private readonly SignInManager<UserModel> _signInManager;
         private readonly IConfiguration _config;
@@ -22,11 +24,12 @@ namespace WinterWay.Controllers
         private readonly bool _registrationIsPossible;
         private readonly bool _registrationForOnlyFirst;
 
-        public AuthController(UserManager<UserModel> userManager, SignInManager<UserModel> signInManager, IConfiguration config)
+        public AuthController(ApplicationContext db, UserManager<UserModel> userManager, SignInManager<UserModel> signInManager, IConfiguration config)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _config = config;
+            _db = db;
 
             var registrationConfig = _config.GetSection("Registration");
 
@@ -73,10 +76,17 @@ namespace WinterWay.Controllers
             {
                 return StatusCode(403, new ApiError(InnerErrors.RegistrationIsClosed, "Registration is closed"));
             }
-            if (await _userManager.FindByNameAsync(signupForm.Username) != null)
+            if (await _userManager.FindByNameAsync(signupForm.Username!) != null)
             {
                 return BadRequest(new ApiError(InnerErrors.UsernameAlreadyExists, "Username alreay exists"));
             }
+
+            var user = new UserModel { 
+                UserName = signupForm.Username,
+                //BacklogSprint = backlogSprint,
+            };
+
+            var result = await _userManager.CreateAsync(user, signupForm.Password!);
 
             var currentDate = DateTime.UtcNow;
             var backlogBoard = new BoardModel
@@ -91,7 +101,11 @@ namespace WinterWay.Controllers
                 Favorite = false,
                 Archived = false,
                 CreationDate = currentDate,
+                User = user,
             };
+
+            _db.Boards.Add(backlogBoard);
+
             var backlogSprint = new SprintModel
             {
                 Name = "Backlog",
@@ -104,12 +118,14 @@ namespace WinterWay.Controllers
                 Board = backlogBoard,
             };
 
-            var user = new UserModel { 
-                UserName = signupForm.Username,
-                BacklogSprint = backlogSprint,
-            };
 
-            var result = await _userManager.CreateAsync(user, signupForm.Password);
+            _db.Sprints.Add(backlogSprint);
+            user.BacklogSprint = backlogSprint;
+            
+            await _userManager.UpdateAsync(user);
+            backlogBoard.ActualSprint = backlogSprint;
+
+            _db.SaveChanges();
 
             if (result.Succeeded)
             {

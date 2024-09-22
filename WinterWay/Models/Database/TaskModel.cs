@@ -1,4 +1,5 @@
-﻿using WinterWay.Enums;
+﻿using System.Text.Json.Serialization;
+using WinterWay.Enums;
 
 namespace WinterWay.Models.Database
 {
@@ -17,8 +18,10 @@ namespace WinterWay.Models.Database
         public DateTime? ClosingDate { get; set; }
 
         public int BoardId { get; set; }
+        [JsonIgnore]
         public BoardModel Board { get; set; }
         public int? SprintId { get; set; }
+        [JsonIgnore]
         public SprintModel? Sprint { get; set; }
 
         public List<SubtaskModel> Subtasks { get; set; } = new List<SubtaskModel>();

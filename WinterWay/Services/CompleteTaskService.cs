@@ -17,6 +17,11 @@ namespace WinterWay.Services
 
         public TaskModel ChangeStatus(TaskModel TargetTask, bool status)
         {
+            if (TargetTask.IsDone == status)
+            {
+                return TargetTask;
+            }
+
             if (status)
             {
                 TargetTask.IsDone = true;
@@ -41,13 +46,13 @@ namespace WinterWay.Services
                 needsToBeClosed = TargetTask.Type switch
                 {
                     TaskType.TodoList => TargetTask.Subtasks.All(s => s.IsDone),
-                    TaskType.TextCounter => TargetTask.TextCounters.Count() >= TargetTask.MaxCounter,
-                    TaskType.NumericCounter => TargetTask.NumericCounter!.Value >= TargetTask.MaxCounter,
+                    TaskType.TextCounter => (TargetTask.TextCounters.Count() >= TargetTask.MaxCounter) && TargetTask.MaxCounter > 0,
+                    TaskType.NumericCounter => (TargetTask.NumericCounter!.Value >= TargetTask.MaxCounter) && TargetTask.MaxCounter > 0,
                     _ => false,
                 };
             }
 
-            if (needsToBeClosed)
+            if (needsToBeClosed && !TargetTask.IsDone)
             {
                 ChangeStatus(TargetTask, true);
             }

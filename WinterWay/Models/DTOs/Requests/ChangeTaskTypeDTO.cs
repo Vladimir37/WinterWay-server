@@ -11,6 +11,8 @@ namespace WinterWay.Models.DTOs.Requests
         [Required]
         [EnumValidation(typeof(TaskType))]
         public TaskType TaskType { get; set; }
-        public int MaxValue { get; set; }
+        [Required]
+        [Range(0, int.MaxValue)]
+        public int MaxCounter { get; set; }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace WinterWay.Models.Database
+﻿using System.Text.Json.Serialization;
+
+namespace WinterWay.Models.Database
 {
     public class NumericCounterModel
     {
@@ -7,6 +9,7 @@
         public int Value { get; set; }
 
         public int TaskId { get; set; }
+        [JsonIgnore]
         public TaskModel Task { get; set; }
 
         public NumericCounterModel CloneToNewTask()

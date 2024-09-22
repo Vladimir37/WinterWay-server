@@ -32,7 +32,9 @@ namespace WinterWay.Controllers
 
             var targetTask = _db.Tasks
                 .Include(t => t.Board)
+                .Include(t => t.Subtasks)
                 .Where(t => t.Id == createSubtaskForm.TaskId)
+                .Where(t => t.Type == TaskType.TodoList)
                 .Where(t => t.Board.UserId == user!.Id)
                 .FirstOrDefault();
 
@@ -62,6 +64,8 @@ namespace WinterWay.Controllers
             var targetSubtask = _db.Subtasks
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Board)
+                .Include(s => s.Task)
+                .ThenInclude(t => t.Subtasks)
                 .Where(s => s.Id == editSubtaskForm.SubtaskId)
                 .Where(s => s.Task.Board.UserId == user!.Id)
                 .FirstOrDefault();
@@ -84,13 +88,16 @@ namespace WinterWay.Controllers
             var targetSubtask = _db.Subtasks
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Board)
+                .Include(s => s.Task)
+                .ThenInclude(t => t.Subtasks)
                 .Where(s => s.Id == changeStatusForm.SubtaskId)
                 .Where(s => s.Task.Board.UserId == user!.Id)
+                .Where(s => s.Task.Sprint != null)
                 .FirstOrDefault();
 
             if (targetSubtask == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Subtask does not exists"));
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Subtask in sprint does not exists"));
             }
 
             targetSubtask.IsDone = changeStatusForm.Status;
@@ -118,6 +125,13 @@ namespace WinterWay.Controllers
                 .OrderBy(s => changeOrderForm.Subtasks.IndexOf(s.Id))
                 .ToList();
 
+            bool allSubtasksBelongToOneTask = subtasks.All(s => s.TaskId == subtasks.First().TaskId);
+
+            if (!allSubtasksBelongToOneTask)
+            {
+                return BadRequest(new ApiError(InnerErrors.InvalidForm, "Subtasks belong to different tasks"));
+            }
+
             var num = 0;
             foreach (var subtask in subtasks)
             {
@@ -136,6 +150,8 @@ namespace WinterWay.Controllers
             var targetSubtask = _db.Subtasks
                 .Include(s => s.Task)
                 .ThenInclude (t => t.Board)
+                .Include(s => s.Task)
+                .ThenInclude(t => t.Subtasks)
                 .Where(s => s.Id == idForm.Id)
                 .Where(s => s.Task.Board.UserId == user!.Id)
                 .FirstOrDefault();
@@ -157,7 +173,9 @@ namespace WinterWay.Controllers
 
             var targetTask = _db.Tasks
                 .Include(t => t.Board)
+                .Include(t => t.TextCounters)
                 .Where(t => t.Id == createTextCounterForm.TaskId)
+                .Where(t => t.Type == TaskType.TextCounter)
                 .Where(t => t.Board.UserId == user!.Id)
                 .FirstOrDefault();
 
@@ -175,7 +193,10 @@ namespace WinterWay.Controllers
 
             _db.TextCounters.Add(newTextCounter);
             _db.SaveChanges();
-            return Ok(targetTask);
+
+            var finalTask = _completeTaskService.CheckAutocompleteStatus(targetTask);
+
+            return Ok(finalTask);
         }
 
         [HttpPost("edit-text-counter")]
@@ -186,6 +207,8 @@ namespace WinterWay.Controllers
             var targetTextCounter = _db.TextCounters
                 .Include(t => t.Task)
                 .ThenInclude(t => t.Board)
+                .Include(t => t.Task)
+                .ThenInclude(t => t.TextCounters)
                 .Where(t => t.Id == editTextCounterForm.SubtaskId)
                 .Where(t => t.Task.Board.UserId == user!.Id)
                 .FirstOrDefault();
@@ -198,9 +221,7 @@ namespace WinterWay.Controllers
             targetTextCounter.Text = editTextCounterForm.Text;
             _db.SaveChanges();
 
-            var finalTask = _completeTaskService.CheckAutocompleteStatus(targetTextCounter.Task);
-
-            return Ok(finalTask);
+            return Ok(targetTextCounter);
         }
 
         [HttpPost("change-text-counters-order")]
@@ -211,10 +232,19 @@ namespace WinterWay.Controllers
             var textCounters = _db.TextCounters
                 .Include(t => t.Task)
                 .ThenInclude(t => t.Board)
+                .Include(t => t.Task)
+                .ThenInclude(t => t.TextCounters)
                 .Where(t => changeOrderForm.Subtasks.Contains(t.Id))
                 .Where(t => t.Task.Board.UserId == user!.Id)
                 .OrderBy(t => changeOrderForm.Subtasks.IndexOf(t.Id))
                 .ToList();
+
+            bool allTextCountersBelongToOneTask = textCounters.All(s => s.TaskId == textCounters.First().TaskId);
+
+            if (!allTextCountersBelongToOneTask)
+            {
+                return BadRequest(new ApiError(InnerErrors.InvalidForm, "Text counters belong to different tasks"));
+            }
 
             var num = 0;
             foreach (var textCounter in textCounters)
@@ -234,6 +264,8 @@ namespace WinterWay.Controllers
             var targetTextCounter = _db.TextCounters
                 .Include(t => t.Task)
                 .ThenInclude(t => t.Board)
+                .Include(t => t.Task)
+                .ThenInclude(t => t.TextCounters)
                 .Where(t => t.Id == idForm.Id)
                 .Where(t => t.Task.Board.UserId == user!.Id)
                 .FirstOrDefault();

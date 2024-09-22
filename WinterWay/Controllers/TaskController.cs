@@ -164,6 +164,7 @@ namespace WinterWay.Controllers
 
             var targetTask = _db.Tasks
                 .Include(t => t.Board)
+                .Include(t => t.NumericCounter)
                 .Where(t => t.Id == changeTypeForm.TaskId)
                 .Where(t => t.Board.UserId == user!.Id)
                 .FirstOrDefault();
@@ -174,7 +175,7 @@ namespace WinterWay.Controllers
             }
 
             targetTask.Type = changeTypeForm.TaskType;
-            targetTask.MaxCounter = changeTypeForm.MaxValue;
+            targetTask.MaxCounter = changeTypeForm.MaxCounter;
             
             if (changeTypeForm.TaskType == TaskType.NumericCounter && targetTask.NumericCounter == null)
             {
@@ -208,6 +209,7 @@ namespace WinterWay.Controllers
             }
 
             _db.Tasks.Remove(targetTask);
+            _db.SaveChanges();
             return Ok("Task has been deleted");
         }
 
@@ -249,7 +251,7 @@ namespace WinterWay.Controllers
 
             if (!targetBoardExists)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Sprint does not exists"));
+                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Board does not exists"));
             }
 
             var targetTasks = _db.Tasks

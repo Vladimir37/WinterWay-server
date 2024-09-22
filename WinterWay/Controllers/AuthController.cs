@@ -83,7 +83,6 @@ namespace WinterWay.Controllers
 
             var user = new UserModel { 
                 UserName = signupForm.Username,
-                //BacklogSprint = backlogSprint,
             };
 
             var result = await _userManager.CreateAsync(user, signupForm.Password!);

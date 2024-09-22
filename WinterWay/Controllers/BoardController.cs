@@ -197,6 +197,8 @@ namespace WinterWay.Controllers
             user = await _db.Users
                 .Include(u => u.Boards)
                 .ThenInclude(b => b.ActualSprint)
+                .Include(u => u.Boards)
+                .ThenInclude(b => b.AllTasks)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
             return Ok(user!.Boards.ToList());
@@ -213,6 +215,11 @@ namespace WinterWay.Controllers
                 .Include(u => u.Boards)
                 .ThenInclude(b => b.AllSprints)
                 .ThenInclude(s => s.SprintResult)
+                .Include(u => u.Boards)
+                .ThenInclude(b => b.AllTasks)
+                .Include(u => u.Boards)
+                .ThenInclude(b => b.AllSprints)
+                .ThenInclude(s => s.Tasks)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
             return Ok(user!.Boards.ToList());

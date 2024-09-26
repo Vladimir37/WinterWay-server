@@ -15,6 +15,7 @@ namespace WinterWay.Models.Database
         public bool IsBacklog { get; set; }
         public bool Favorite { get; set; }
         public bool Archived { get; set; }
+        public int SortOrder { get; set; }
         public DateTime CreationDate { get; set; }
 
         public string UserId { get; set; }

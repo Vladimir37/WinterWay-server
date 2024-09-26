@@ -14,6 +14,5 @@ namespace WinterWay.Models.DTOs.Requests
         [Required]
         [Range(0, int.MaxValue)]
         public int MaxCounter { get; set; }
-
     }
 }

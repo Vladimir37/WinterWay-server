@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Eventing.Reader;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using WinterWay.Data;
 using WinterWay.Enums;
@@ -15,49 +16,76 @@ namespace WinterWay.Services
             _db = db;
         }
 
-        public TaskModel ChangeStatus(TaskModel TargetTask, bool status)
+        public TaskModel ChangeStatus(TaskModel targetTask, bool status)
         {
-            if (TargetTask.IsDone == status)
+            if (targetTask.IsDone == status)
             {
-                return TargetTask;
+                return targetTask;
             }
+
+            var tasksInSprintInStatusCount = _db.Tasks
+                .Include(t => t.Board)
+                .Where(t => t.IsDone == status)
+                .Where(t => t.SprintId == targetTask.SprintId)
+                .Where(t => t.Board.UserId == targetTask.Board.UserId)
+                .Count();
 
             if (status)
             {
-                TargetTask.IsDone = true;
-                TargetTask.ClosingDate = DateTime.UtcNow;
+                targetTask.IsDone = true;
+                targetTask.SortOrder = tasksInSprintInStatusCount;
+                targetTask.ClosingDate = DateTime.UtcNow;
             } 
             else
             {
-                TargetTask.IsDone = false;
-                TargetTask.ClosingDate = null;
+                targetTask.IsDone = false;
+                targetTask.SortOrder = tasksInSprintInStatusCount;
+                targetTask.ClosingDate = null;
             }
 
             _db.SaveChanges();
-            return TargetTask;
+            return targetTask;
         }
 
-        public TaskModel CheckAutocompleteStatus(TaskModel TargetTask)
+        public TaskModel CheckAutocompleteStatus(TaskModel targetTask)
         {
             bool needsToBeClosed = false;
 
-            if (!TargetTask.IsDone && TargetTask.AutoComplete)
+            if (!targetTask.IsDone && targetTask.AutoComplete)
             {
-                needsToBeClosed = TargetTask.Type switch
+                needsToBeClosed = targetTask.Type switch
                 {
-                    TaskType.TodoList => TargetTask.Subtasks.All(s => s.IsDone),
-                    TaskType.TextCounter => (TargetTask.TextCounters.Count() >= TargetTask.MaxCounter) && TargetTask.MaxCounter > 0,
-                    TaskType.NumericCounter => (TargetTask.NumericCounter!.Value >= TargetTask.MaxCounter) && TargetTask.MaxCounter > 0,
+                    TaskType.TodoList => targetTask.Subtasks.All(s => s.IsDone),
+                    TaskType.TextCounter => (targetTask.TextCounters.Count() >= targetTask.MaxCounter) && targetTask.MaxCounter > 0,
+                    TaskType.NumericCounter => (targetTask.NumericCounter!.Value >= targetTask.MaxCounter) && targetTask.MaxCounter > 0,
                     _ => false,
                 };
             }
 
-            if (needsToBeClosed && !TargetTask.IsDone)
+            if (needsToBeClosed && !targetTask.IsDone)
             {
-                ChangeStatus(TargetTask, true);
+                ChangeStatus(targetTask, true);
             }
 
-            return TargetTask;
+            return targetTask;
+        }
+
+        public List<TaskModel> SortAllTasks(List<TaskModel> tasks)
+        {
+            tasks = tasks
+                .OrderBy(t => t.SortOrder)
+                .ToList();
+
+            var num = 0;
+            foreach (var task in tasks)
+            {
+                task.SortOrder = num;
+                num++;
+            }
+
+            _db.SaveChanges();
+
+            return tasks;
         }
     }
 }

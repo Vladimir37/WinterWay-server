@@ -21,6 +21,8 @@ namespace WinterWay.Controllers
         private readonly SignInManager<UserModel> _signInManager;
         private readonly IConfiguration _config;
 
+        private readonly string _appName;
+        private readonly string _version;
         private readonly bool _registrationIsPossible;
         private readonly bool _registrationForOnlyFirst;
 
@@ -32,9 +34,12 @@ namespace WinterWay.Controllers
             _db = db;
 
             var registrationConfig = _config.GetSection("Registration");
+            var appSettings = _config.GetSection("AppSettings");
 
             _registrationIsPossible = registrationConfig.GetValue<bool>("Available");
             _registrationForOnlyFirst = registrationConfig.GetValue<bool>("OnlyFirst");
+            _appName = appSettings.GetValue<string>("Name")!;
+            _version = appSettings.GetValue<string>("Version")!;
         }
 
         [HttpPost("login")]
@@ -99,6 +104,7 @@ namespace WinterWay.Controllers
                 IsBacklog = true,
                 Favorite = false,
                 Archived = false,
+                SortOrder = 0,
                 CreationDate = currentDate,
                 User = user,
             };
@@ -187,27 +193,22 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            return Ok(new
-            {
-                id = user.Id,
-                username = user.UserName,
-                theme = user.Theme,
-            });
+            return Ok(new UserStatusDTO(user.Id, user.UserName, user.Theme, user.AutoCompleteTasks));
         }
 
-        [HttpGet("reg-status")]
+        [HttpGet("app-status")]
         [AllowAnonymous]
-        public async Task<IActionResult> RegStatus()
+        public async Task<IActionResult> AppStatus()
         {
             if (!_registrationIsPossible)
             {
-                return Ok(new RegStatusDTO(false, false));
+                return Ok(new RegStatusDTO(false, false, _appName, _version));
             }
             else if (_registrationForOnlyFirst)
             {
-                return Ok(new RegStatusDTO(true, !_userManager.Users.Any()));
+                return Ok(new RegStatusDTO(true, !_userManager.Users.Any(), _appName, _version));
             }
-            return Ok(new RegStatusDTO(true, true));
+            return Ok(new RegStatusDTO(true, true, _appName, _version));
         }
     }
 }

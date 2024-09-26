@@ -63,6 +63,7 @@ namespace WinterWay.Services
                 .ToList();
 
             var clonedTask = templateTasks.Select(t => t.CloneToNewSprint(newSprint)).ToList();
+
             _db.Tasks.AddRange(clonedTask);
 
             _db.SaveChanges();
@@ -73,7 +74,7 @@ namespace WinterWay.Services
         public void GenerateResult(SprintModel sprint, int tasksSpill, int tasksToBacklog)
         {
             TimeSpan? difference = sprint.ClosingDate - sprint.CreationDate;
-            int sprintDuration = (int)Math.Ceiling(difference.Value.TotalDays);
+            int sprintDuration = (int)Math.Ceiling(difference!.Value.TotalDays);
             int taskDone = sprint.Tasks.Where(t => t.IsDone).ToList().Count;
             int taskClosed = sprint.Tasks.Where(t => !t.IsDone).ToList().Count;
             var result = new SprintResultModel
@@ -96,10 +97,21 @@ namespace WinterWay.Services
                 var tasks = _db.Tasks
                     .Where(t => t.Board == board && tasksToBacklog.Contains(t.Id))
                     .ToList();
+
+                var tasksInBacklogCount = _db.Tasks
+                    .Include(t => t.Board)
+                    .Where(t => t.Board.UserId == board.UserId)
+                    .Where(t => t.SprintId == backlogSprint.Id)
+                    .Where(t => t.IsDone == false)
+                    .Count();
+
                 foreach (var task in tasks)
                 {
                     task.Sprint = backlogSprint;
                     task.Board = backlogSprint.Board;
+                    task.IsDone = false;
+                    task.SortOrder = tasksInBacklogCount;
+                    tasksInBacklogCount++;
                 }
                 _db.SaveChanges();
                 return tasks.Count;
@@ -114,10 +126,22 @@ namespace WinterWay.Services
                 var tasks = _db.Tasks
                     .Where(t => t.Board == board && tasksToNewSprint.Contains(t.Id))
                     .ToList();
+
+                var tasksInSprintCount = _db.Tasks
+                    .Include(t => t.Board)
+                    .Where(t => t.Board.UserId == board.UserId)
+                    .Where(t => t.SprintId == sprint.Id)
+                    .Where(t => t.IsDone == false)
+                    .Count();
+
                 foreach (var task in tasks)
                 {
                     task.Sprint = sprint;
+                    task.IsDone = false;
+                    task.SortOrder = tasksInSprintCount;
+                    tasksInSprintCount++;
                 }
+
                 _db.SaveChanges();
                 return tasks.Count;
             }

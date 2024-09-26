@@ -7,6 +7,7 @@ using WinterWay.Models.DTOs.Requests;
 using WinterWay.Models.DTOs.Error;
 using WinterWay.Enums;
 using WinterWay.Services;
+using System.Threading.Tasks;
 
 namespace WinterWay.Controllers
 {
@@ -29,6 +30,12 @@ namespace WinterWay.Controllers
         public async Task<IActionResult> CreateBoard([FromBody] CreateBoardDTO createBoardForm)
         {
             var user = await _userManager.GetUserAsync(User);
+
+            var boardsTotal = _db.Boards
+                .Where(b => b.UserId == user!.Id)
+                .Where(b => b.Archived == false)
+                .Count();
+
             var newBoard = new BoardModel
             {
                 Name = createBoardForm.Name,
@@ -40,6 +47,7 @@ namespace WinterWay.Controllers
                 IsBacklog = false,
                 Favorite = false,
                 Archived = false,
+                SortOrder = boardsTotal,
                 CreationDate = DateTime.UtcNow,
                 UserId = user!.Id,
             };
@@ -77,8 +85,8 @@ namespace WinterWay.Controllers
             return Ok(targetBoard);
         }
 
-        [HttpPost("archive")]
-        public async Task<IActionResult> ArchiveBoard([FromBody] IdDTO idForm)
+        [HttpPost("change-archive-status")]
+        public async Task<IActionResult> ChangeBoardArchiveStatus([FromBody] ChangeArchiveStatusDTO changeArchiveStatusForm)
         {
             var user = await _userManager.GetUserAsync(User);
 
@@ -87,49 +95,79 @@ namespace WinterWay.Controllers
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
             var targetBoard = user!.Boards
-                .Where(b => !b.Archived)
+                .Where(b => b.Archived != changeArchiveStatusForm.Status)
                 .Where(b => !b.IsBacklog)
-                .FirstOrDefault(b => b.Id == idForm.Id);
+                .FirstOrDefault(b => b.Id == changeArchiveStatusForm.BoardId);
 
             if (targetBoard == null)
             {
                 return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Active board does not exists"));
             }
 
-            if (targetBoard.ActualSprint != null)
+            if (changeArchiveStatusForm.Status == targetBoard.Archived)
+            {
+                return BadRequest(new ApiError(InnerErrors.InvalidForm, "The new board status is no different from the old one"));
+            }
+
+            if (changeArchiveStatusForm.Status == true && targetBoard.ActualSprint != null)
             {
                 targetBoard.ActualSprint.Active = false;
                 targetBoard.ActualSprint.ClosingDate = DateTime.UtcNow;
                 _rollService.GenerateResult(targetBoard.ActualSprint, 0, 0);
                 targetBoard.ActualSprintId = null;
             }
-            targetBoard.Archived = true;
+            var countOfBoardInNewStatus = _db.Boards
+                .Where(b => b.UserId == user!.Id)
+                .Where(b => b.Archived == changeArchiveStatusForm.Status)
+                .Count();
+
+            targetBoard.Archived = changeArchiveStatusForm.Status;
+            targetBoard.SortOrder = countOfBoardInNewStatus;
             _db.SaveChanges();
+
+            var otherBoardsInOldStatus = _db.Boards
+                .Where(b => b.UserId == user!.Id)
+                .Where(b => b.Archived != changeArchiveStatusForm.Status)
+                .ToList();
+
+            var num = 0;
+            foreach (var board in otherBoardsInOldStatus)
+            {
+                board.SortOrder = num;
+                num++;
+            }
+            _db.SaveChanges();
+
             return Ok(targetBoard);
         }
 
-        [HttpPost("unarchive")]
-        public async Task<IActionResult> UnarchiveBoard([FromBody] IdDTO idForm)
+        [HttpPost("change-boards-order")]
+        public async Task<IActionResult> ChangeBoardsOrder([FromBody] ChangeBoardsOrderDTO changeBoardsOrderForm)
         {
             var user = await _userManager.GetUserAsync(User);
 
-            user = await _db.Users
-                .Include(u => u.Boards)
-                .FirstOrDefaultAsync(u => u.Id == user!.Id);
+            var boards = _db.Boards
+                .Where(b => b.UserId == user!.Id)
+                .Where(b => changeBoardsOrderForm.Boards.Contains(b.Id))
+                .OrderBy(s => changeBoardsOrderForm.Boards.IndexOf(s.Id))
+            .ToList();
 
-            var targetBoard = user.Boards
-                .Where(b => b.Archived)
-                .Where(b => !b.IsBacklog)
-                .FirstOrDefault(b => b.Id == idForm.Id);
+            var allBoardsBelongToOneStatus = boards.All(s => s.Archived == false);
 
-            if (targetBoard == null)
+            if (!allBoardsBelongToOneStatus)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Archive board does not exists"));
+                return BadRequest(new ApiError(InnerErrors.InvalidForm, "All boards must be active"));
             }
 
-            targetBoard.Archived = false;
+            var num = 0;
+            foreach (var board in boards)
+            {
+                board.SortOrder = num;
+                num++;
+            }
             _db.SaveChanges();
-            return Ok(targetBoard);
+
+            return Ok(boards);
         }
 
         [HttpPost("roll")]
@@ -186,6 +224,20 @@ namespace WinterWay.Controllers
 
             _db.Boards.Remove(targetBoard);
             _db.SaveChanges();
+
+            var otherArchivedBoards = _db.Boards
+                .Where(b => b.UserId == user!.Id)
+                .Where(b => b.Archived == true)
+                .ToList();
+
+            var num = 0;
+            foreach (var board in otherArchivedBoards)
+            {
+                board.SortOrder = num;
+                num++;
+            }
+            _db.SaveChanges();
+
             return Ok("Board has been deleted");
         }
 
@@ -197,6 +249,7 @@ namespace WinterWay.Controllers
             user = await _db.Users
                 .Include(u => u.Boards)
                 .ThenInclude(b => b.ActualSprint)
+                .ThenInclude(a => a.Tasks)
                 .Include(u => u.Boards)
                 .ThenInclude(b => b.AllTasks)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
@@ -212,6 +265,7 @@ namespace WinterWay.Controllers
             user = await _db.Users
                 .Include(u => u.Boards.Where(b => b.Id == idForm.Id))
                 .ThenInclude(b => b.ActualSprint)
+                .ThenInclude(a => a.Tasks)
                 .Include(u => u.Boards)
                 .ThenInclude(b => b.AllSprints)
                 .ThenInclude(s => s.SprintResult)

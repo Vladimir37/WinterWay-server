@@ -14,6 +14,7 @@ namespace WinterWay.Models.Database
         public bool AutoComplete { get; set; }
         public string Color { get; set; } = string.Empty;
         public int MaxCounter { get; set; }
+        public int SortOrder { get; set; }
         public DateTime CreationDate { get; set; }
         public DateTime? ClosingDate { get; set; }
 

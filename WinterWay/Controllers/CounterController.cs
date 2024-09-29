@@ -91,8 +91,10 @@ namespace WinterWay.Controllers
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Subtasks)
                 .Where(s => s.Id == changeStatusForm.SubtaskId)
+                .Where(s => s.Task.SprintId != null)
+                .Where(s => s.Task.IsTemplate == false)
+                .Where(s => s.Task.Board.IsBacklog == false)
                 .Where(s => s.Task.Board.UserId == user!.Id)
-                .Where(s => s.Task.Sprint != null)
                 .FirstOrDefault();
 
             if (targetSubtask == null)
@@ -176,6 +178,9 @@ namespace WinterWay.Controllers
                 .Include(t => t.TextCounters)
                 .Where(t => t.Id == createTextCounterForm.TaskId)
                 .Where(t => t.Type == TaskType.TextCounter)
+                .Where(t => t.IsTemplate == false)
+                .Where(t => t.SprintId != null)
+                .Where(t => t.Board.IsBacklog == false)
                 .Where(t => t.Board.UserId == user!.Id)
                 .FirstOrDefault();
 
@@ -311,6 +316,9 @@ namespace WinterWay.Controllers
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Board)
                 .Where(n => n.Id == changeNumericCounterValueForm.NumericCounterId)
+                .Where(n => n.Task.IsTemplate == false)
+                .Where(n => n.Task.SprintId != null)
+                .Where(n => n.Task.Board.IsBacklog == false)
                 .Where(n => n.Task.Board.UserId == user!.Id)
                 .FirstOrDefault();
 

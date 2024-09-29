@@ -178,6 +178,7 @@ namespace WinterWay.Controllers
             user = await _db.Users
                 .Include(u => u.Boards)
                 .ThenInclude(b => b.ActualSprint)
+                .ThenInclude(s => s.Tasks)
                 .Include(u => u.BacklogSprint)
                 .ThenInclude(s => s.Board)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);

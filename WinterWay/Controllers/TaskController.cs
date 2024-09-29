@@ -180,7 +180,7 @@ namespace WinterWay.Controllers
                 .Include(t => t.Board)
                 .Where(t => t.Id == changeStatusForm.TaskId)
                 .Where(t => t.SprintId != null)
-                .Where(t => t.IsTemplate == true)
+                .Where(t => t.IsTemplate == false)
                 .Where(t => t.Board.IsBacklog == false)
                 .Where(t => t.Board.UserId == user!.Id)
                 .FirstOrDefault();

@@ -43,11 +43,15 @@ namespace WinterWay.Controllers
                 return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Task does not exists"));
             }
 
+            var countOfSubtasks = _db.Subtasks
+                .Where(s => s.TaskId == targetTask.Id)
+                .Count();
+
             var newSubtask = new SubtaskModel
             {
                 Text = createSubtaskForm.Text,
                 IsDone = false,
-                SortOrder = createSubtaskForm.SortOrder,
+                SortOrder = countOfSubtasks,
                 Task = targetTask
             };
 
@@ -164,6 +168,20 @@ namespace WinterWay.Controllers
             }
 
             _db.Subtasks.Remove(targetSubtask);
+
+            _db.SaveChanges();
+            
+            var allOtherSubtasks = _db.Subtasks
+                .Where(s => s.TaskId == targetSubtask.TaskId)
+                .ToList();
+
+            var num = 0;
+            foreach (var subtask in allOtherSubtasks)
+            {
+                subtask.SortOrder = num;
+                num++;
+            }
+
             _db.SaveChanges();
             return Ok(targetSubtask.Task);
         }
@@ -189,10 +207,14 @@ namespace WinterWay.Controllers
                 return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Task does not exists"));
             }
 
+            var countOfTextCounters = _db.TextCounters
+                .Where(s => s.TaskId == targetTask.Id)
+                .Count();
+
             var newTextCounter = new TextCounterModel
             {
                 Text = createTextCounterForm.Text,
-                SortOrder = createTextCounterForm.SortOrder,
+                SortOrder = countOfTextCounters,
                 Task = targetTask
             };
 
@@ -281,6 +303,18 @@ namespace WinterWay.Controllers
             }
 
             _db.TextCounters.Remove(targetTextCounter);
+            _db.SaveChanges();
+
+            var allOtherTextCounters = _db.TextCounters
+                .Where(s => s.TaskId == targetTextCounter.TaskId)
+                .ToList();
+
+            var num = 0;
+            foreach (var textCounter in allOtherTextCounters)
+            {
+                textCounter.SortOrder = num;
+                num++;
+            }
             _db.SaveChanges();
             return Ok(targetTextCounter.Task);
         }

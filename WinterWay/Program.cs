@@ -47,10 +47,11 @@ builder.Services.AddControllers(options =>
 
 builder.Services.AddScoped<RollService>();
 builder.Services.AddScoped<CompleteTaskService>();
+builder.Services.AddScoped<CalendarService>();
 
 var app = builder.Build();
 
-//Uncomment when https will be prepared
+//Uncomment when https will be ready
 //app.UseHttpsRedirection();
 
 app.UseMiddleware<ErrorHandlerMiddleware>();

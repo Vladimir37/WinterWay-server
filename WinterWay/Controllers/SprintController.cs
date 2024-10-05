@@ -44,7 +44,7 @@ namespace WinterWay.Controllers
 
             if (targetSprint == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Active sprint does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Active sprint does not exists"));
             }
 
             targetSprint.Name = editSprintForm.Name;
@@ -71,13 +71,13 @@ namespace WinterWay.Controllers
 
             if (targetSprint == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Active sprint does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Active sprint does not exists"));
             }
 
             RollType rollType = targetSprint.Board.RollType;
             if (rollType == RollType.Day || rollType == RollType.Month)
             {
-                return BadRequest(new ApiError(InnerErrors.CannotChangeFixedBackground, "Can't change fixed background"));
+                return BadRequest(new ApiError(InternalError.CannotChangeFixedBackground, "Can't change fixed background"));
             }
 
             int newImageNum = _rollService.SelectImageForSprint(rollType, targetSprint.CreationDate, targetSprint.Image);
@@ -105,7 +105,7 @@ namespace WinterWay.Controllers
 
             if (targetSprint == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Archive sprint does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Archive sprint does not exists"));
             }
 
             _db.Sprints.Remove(targetSprint);
@@ -133,7 +133,7 @@ namespace WinterWay.Controllers
 
             if (targetSprint == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Active sprint does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Active sprint does not exists"));
             }
 
             return Ok(targetSprint);

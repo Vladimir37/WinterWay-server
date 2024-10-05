@@ -53,7 +53,7 @@ namespace WinterWay.Controllers
                 (createTaskForm.SprintId != null && targetSprint == null)
             )
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Board or sprint does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Board or sprint does not exists"));
             }
 
             var otherTasksCount = _db.Tasks
@@ -101,7 +101,7 @@ namespace WinterWay.Controllers
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Task does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
             }
 
             targetTask.Name = editTaskForm.Name;
@@ -137,12 +137,12 @@ namespace WinterWay.Controllers
 
             if (!isBoardExists || !isSprintExists || targetTask == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Board, sprint or task does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Board, sprint or task does not exists"));
             }
 
             if (targetTask.SprintId == moveTaskForm.SprintId)
             {
-                return BadRequest(new ApiError(InnerErrors.InvalidForm, "The old and new sprints are the same"));
+                return BadRequest(new ApiError(InternalError.InvalidForm, "The old and new sprints are the same"));
             }
 
             var tasksInSprintInStatusCount = _db.Tasks
@@ -187,12 +187,12 @@ namespace WinterWay.Controllers
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Available task does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Available task does not exists"));
             }
 
             if (targetTask.IsDone == changeStatusForm.Status)
             {
-                return BadRequest(new ApiError(InnerErrors.InvalidForm, "The status has not changed"));
+                return BadRequest(new ApiError(InternalError.InvalidForm, "The status has not changed"));
             }
 
             var oldTaskStatus = targetTask.IsDone;
@@ -225,7 +225,7 @@ namespace WinterWay.Controllers
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Task does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
             }
 
             targetTask.Type = changeTypeForm.TaskType;
@@ -264,7 +264,7 @@ namespace WinterWay.Controllers
 
             if (!allTasksBelongToOneSprint || !allTasksBelongToOneBoard || !allTasksHaveTheSameStatus)
             {
-                return BadRequest(new ApiError(InnerErrors.InvalidForm, "Tasks have different boards, sprints or statuses"));
+                return BadRequest(new ApiError(InternalError.InvalidForm, "Tasks have different boards, sprints or statuses"));
             }
 
             var num = 0;
@@ -291,7 +291,7 @@ namespace WinterWay.Controllers
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Task does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
             }
 
             var oldBoardId = targetTask.BoardId;
@@ -342,7 +342,7 @@ namespace WinterWay.Controllers
 
             if (!targetSprintExists)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Sprint does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Sprint does not exists"));
             }
 
             var targetTasks = _db.Tasks
@@ -367,7 +367,7 @@ namespace WinterWay.Controllers
 
             if (!targetBoardExists)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Board does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Board does not exists"));
             }
 
             var targetTasks = _db.Tasks

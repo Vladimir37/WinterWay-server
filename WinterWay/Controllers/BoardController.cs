@@ -7,7 +7,6 @@ using WinterWay.Models.DTOs.Requests;
 using WinterWay.Models.DTOs.Error;
 using WinterWay.Enums;
 using WinterWay.Services;
-using System.Threading.Tasks;
 
 namespace WinterWay.Controllers
 {
@@ -72,7 +71,7 @@ namespace WinterWay.Controllers
 
             if (targetBoard == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Board does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Board does not exists"));
             }
 
             targetBoard.Name = editBoardForm.Name;
@@ -97,16 +96,16 @@ namespace WinterWay.Controllers
             var targetBoard = user!.Boards
                 .Where(b => b.Archived != changeArchiveStatusForm.Status)
                 .Where(b => !b.IsBacklog)
-                .FirstOrDefault(b => b.Id == changeArchiveStatusForm.BoardId);
+                .FirstOrDefault(b => b.Id == changeArchiveStatusForm.Id);
 
             if (targetBoard == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Active board does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Active board does not exists"));
             }
 
             if (changeArchiveStatusForm.Status == targetBoard.Archived)
             {
-                return BadRequest(new ApiError(InnerErrors.InvalidForm, "The new board status is no different from the old one"));
+                return BadRequest(new ApiError(InternalError.InvalidForm, "The new board status is no different from the old one"));
             }
 
             if (changeArchiveStatusForm.Status == true && targetBoard.ActualSprint != null)
@@ -156,7 +155,7 @@ namespace WinterWay.Controllers
 
             if (!allBoardsBelongToOneStatus)
             {
-                return BadRequest(new ApiError(InnerErrors.InvalidForm, "All boards must be active"));
+                return BadRequest(new ApiError(InternalError.InvalidForm, "All boards must be active"));
             }
 
             var num = 0;
@@ -190,7 +189,7 @@ namespace WinterWay.Controllers
 
             if (targetBoard == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Active board does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Active board does not exists"));
             }
 
             var previousSprint = targetBoard.ActualSprint;
@@ -220,7 +219,7 @@ namespace WinterWay.Controllers
 
             if (targetBoard == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Archive board does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Archive board does not exists"));
             }
 
             _db.Boards.Remove(targetBoard);

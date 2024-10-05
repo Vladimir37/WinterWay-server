@@ -1,6 +1,6 @@
 ﻿namespace WinterWay.Enums
 {
-    public enum InnerErrors
+    public enum InternalError
     {
         Other = 0,
         PageNotFound = 1,

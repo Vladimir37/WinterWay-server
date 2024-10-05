@@ -13,6 +13,9 @@ namespace WinterWay.Data
         public DbSet<SubtaskModel> Subtasks { get; set; }
         public DbSet<TextCounterModel> TextCounters { get; set; }
         public DbSet<NumericCounterModel> NumericCounters { get; set; }
+        public DbSet<CalendarModel> Calendars { get; set; }
+        public DbSet<CalendarRecordModel> CalendarRecords { get; set; }
+        public DbSet<CalendarValueModel> CalendarValues { get; set; }
 
         public ApplicationContext(DbContextOptions<ApplicationContext> options)
             : base(options)

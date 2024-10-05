@@ -11,7 +11,7 @@ namespace WinterWay.Filters
         {
             if (!context.ModelState.IsValid)
             {
-                var error = new ApiError(InnerErrors.InvalidForm, "Invalid form", context.ModelState.Keys.ToList());
+                var error = new ApiError(InternalError.InvalidForm, "Invalid form", context.ModelState.Keys.ToList());
 
                 context.Result = new BadRequestObjectResult(error);
             }

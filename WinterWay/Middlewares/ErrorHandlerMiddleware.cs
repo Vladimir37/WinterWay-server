@@ -18,11 +18,11 @@ namespace WinterWay.Middlewares
 
             if (context.Response.StatusCode == 404 || context.Response.StatusCode == 405)
             {
-                await context.Response.WriteAsJsonAsync(new ApiError(InnerErrors.PageNotFound, "Page not found"));
+                await context.Response.WriteAsJsonAsync(new ApiError(InternalError.PageNotFound, "Page not found"));
             }
             else if (context.Response.StatusCode == 415)
             {
-                await context.Response.WriteAsJsonAsync(new ApiError(InnerErrors.UnsupportedMediaType, "Invalid form type"));
+                await context.Response.WriteAsJsonAsync(new ApiError(InternalError.UnsupportedMediaType, "Invalid form type"));
             }
             // Uncomment when .NET 10
             //else if (context.Response.StatusCode == 401) 

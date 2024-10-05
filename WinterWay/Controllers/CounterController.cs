@@ -40,7 +40,7 @@ namespace WinterWay.Controllers
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Task does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
             }
 
             var countOfSubtasks = _db.Subtasks
@@ -76,7 +76,7 @@ namespace WinterWay.Controllers
 
             if (targetSubtask == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Subtask does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Subtask does not exists"));
             }
 
             targetSubtask.Text = editSubtaskForm.Text;
@@ -103,7 +103,7 @@ namespace WinterWay.Controllers
 
             if (targetSubtask == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Subtask in sprint does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Subtask in sprint does not exists"));
             }
 
             targetSubtask.IsDone = changeStatusForm.Status;
@@ -135,7 +135,7 @@ namespace WinterWay.Controllers
 
             if (!allSubtasksBelongToOneTask)
             {
-                return BadRequest(new ApiError(InnerErrors.InvalidForm, "Subtasks belong to different tasks"));
+                return BadRequest(new ApiError(InternalError.InvalidForm, "Subtasks belong to different tasks"));
             }
 
             var num = 0;
@@ -164,7 +164,7 @@ namespace WinterWay.Controllers
 
             if (targetSubtask == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Subtask does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Subtask does not exists"));
             }
 
             _db.Subtasks.Remove(targetSubtask);
@@ -204,7 +204,7 @@ namespace WinterWay.Controllers
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Task does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
             }
 
             var countOfTextCounters = _db.TextCounters
@@ -242,7 +242,7 @@ namespace WinterWay.Controllers
 
             if (targetTextCounter == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Text counter does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Text counter does not exists"));
             }
 
             targetTextCounter.Text = editTextCounterForm.Text;
@@ -270,7 +270,7 @@ namespace WinterWay.Controllers
 
             if (!allTextCountersBelongToOneTask)
             {
-                return BadRequest(new ApiError(InnerErrors.InvalidForm, "Text counters belong to different tasks"));
+                return BadRequest(new ApiError(InternalError.InvalidForm, "Text counters belong to different tasks"));
             }
 
             var num = 0;
@@ -299,7 +299,7 @@ namespace WinterWay.Controllers
 
             if (targetTextCounter == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Text counter does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Text counter does not exists"));
             }
 
             _db.TextCounters.Remove(targetTextCounter);
@@ -333,7 +333,7 @@ namespace WinterWay.Controllers
 
             if (targetNumericCounter == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Numeric counter does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Numeric counter does not exists"));
             }
 
             targetNumericCounter.Name = editNumericCounterForm.Name;
@@ -358,7 +358,7 @@ namespace WinterWay.Controllers
 
             if (targetNumericCounter == null)
             {
-                return BadRequest(new ApiError(InnerErrors.ElementNotFound, "Numeric counter does not exists"));
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Numeric counter does not exists"));
             }
 
             targetNumericCounter.Value = changeNumericCounterValueForm.Value;

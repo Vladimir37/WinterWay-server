@@ -1,12 +1,12 @@
 ﻿namespace WinterWay.Models.DTOs.Responses
 {
-    public class RegStatusDTO
+    public class AppStatusDTO
     {
         public string AppName { get; }
         public string AppVersion { get; }
         public bool RegistraionIsPossible { get; set; }
         public bool RegistrationIsAvailable { get; set; }
-        public RegStatusDTO(bool registraionIsPossible, bool registrationIsAvailable, string name, string version)
+        public AppStatusDTO(bool registraionIsPossible, bool registrationIsAvailable, string name, string version)
         {
             RegistraionIsPossible = registraionIsPossible;
             RegistrationIsAvailable = registrationIsAvailable;

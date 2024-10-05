@@ -63,7 +63,7 @@ namespace WinterWay.Controllers
 
                 return Ok("Successful authorization");
             }
-            return Unauthorized(new ApiError(InnerErrors.InvalidUserData, "Invalid user data"));
+            return Unauthorized(new ApiError(InternalError.InvalidUserData, "Invalid user data"));
         }
 
         [HttpPost("logout")]
@@ -79,11 +79,11 @@ namespace WinterWay.Controllers
         {
             if (!_registrationIsPossible || (_registrationForOnlyFirst && _userManager.Users.Any()))
             {
-                return StatusCode(403, new ApiError(InnerErrors.RegistrationIsClosed, "Registration is closed"));
+                return StatusCode(403, new ApiError(InternalError.RegistrationIsClosed, "Registration is closed"));
             }
             if (await _userManager.FindByNameAsync(signupForm.Username!) != null)
             {
-                return BadRequest(new ApiError(InnerErrors.UsernameAlreadyExists, "Username alreay exists"));
+                return BadRequest(new ApiError(InternalError.UsernameAlreadyExists, "Username alreay exists"));
             }
 
             var user = new UserModel { 
@@ -136,7 +136,7 @@ namespace WinterWay.Controllers
             {
                 return Ok("User created");
             }
-            return BadRequest(new ApiError(InnerErrors.Other, "Signup error"));
+            return BadRequest(new ApiError(InternalError.Other, "Signup error"));
         }
 
         [HttpPost("edit-user")]
@@ -145,11 +145,11 @@ namespace WinterWay.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return Unauthorized(new ApiError(InnerErrors.InvalidUserData, "Invalid user data"));
+                return Unauthorized(new ApiError(InternalError.InvalidUserData, "Invalid user data"));
             }
             if (await _userManager.FindByNameAsync(editUserForm.Username!) != null && editUserForm.Username != user.UserName)
             {
-                return BadRequest(new ApiError(InnerErrors.UsernameAlreadyExists, "Username alreay exists"));
+                return BadRequest(new ApiError(InternalError.UsernameAlreadyExists, "Username alreay exists"));
             }
             
             user.Theme = editUserForm.Theme;
@@ -160,7 +160,7 @@ namespace WinterWay.Controllers
             {
                 return Ok("User has been updated");
             }
-            return BadRequest(new ApiError(InnerErrors.Other, "User edit error"));
+            return BadRequest(new ApiError(InternalError.Other, "User edit error"));
         }
 
         [HttpPost("change-password")]
@@ -170,7 +170,7 @@ namespace WinterWay.Controllers
 
             if (!await _userManager.CheckPasswordAsync(user, changePasswordForm.OldPassword!))
             {
-                return BadRequest(new ApiError(InnerErrors.InvalidUserData, "Incorrect password"));
+                return BadRequest(new ApiError(InternalError.InvalidUserData, "Incorrect password"));
             }
 
             var result = await _userManager.ChangePasswordAsync(user, changePasswordForm.OldPassword!, changePasswordForm.NewPassword!);
@@ -178,14 +178,14 @@ namespace WinterWay.Controllers
             {
                 return Ok("Password has been changed");
             }
-            return BadRequest(new ApiError(InnerErrors.Other, "Password has not been changed"));
+            return BadRequest(new ApiError(InternalError.Other, "Password has not been changed"));
         }
 
         [HttpGet("access-denied")]
         [AllowAnonymous]
         public async Task<IActionResult> AccessDenied()
         {
-            return Unauthorized(new ApiError(InnerErrors.NotAuthorized, "User is not authorized"));
+            return Unauthorized(new ApiError(InternalError.NotAuthorized, "User is not authorized"));
         }
 
         [HttpGet("user-status")]
@@ -202,13 +202,13 @@ namespace WinterWay.Controllers
         {
             if (!_registrationIsPossible)
             {
-                return Ok(new RegStatusDTO(false, false, _appName, _version));
+                return Ok(new AppStatusDTO(false, false, _appName, _version));
             }
             else if (_registrationForOnlyFirst)
             {
-                return Ok(new RegStatusDTO(true, !_userManager.Users.Any(), _appName, _version));
+                return Ok(new AppStatusDTO(true, !_userManager.Users.Any(), _appName, _version));
             }
-            return Ok(new RegStatusDTO(true, true, _appName, _version));
+            return Ok(new AppStatusDTO(true, true, _appName, _version));
         }
     }
 }

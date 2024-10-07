@@ -103,11 +103,6 @@ namespace WinterWay.Controllers
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Active board does not exists"));
             }
 
-            if (changeArchiveStatusForm.Status == targetBoard.Archived)
-            {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "The new board status is no different from the old one"));
-            }
-
             if (changeArchiveStatusForm.Status == true && targetBoard.ActualSprint != null)
             {
                 targetBoard.ActualSprint.Active = false;
@@ -141,14 +136,14 @@ namespace WinterWay.Controllers
         }
 
         [HttpPost("change-boards-order")]
-        public async Task<IActionResult> ChangeBoardsOrder([FromBody] ChangeBoardsOrderDTO changeBoardsOrderForm)
+        public async Task<IActionResult> ChangeBoardsOrder([FromBody] ChangeElementsOrderDTO changeBoardsOrderForm)
         {
             var user = await _userManager.GetUserAsync(User);
 
             var boards = _db.Boards
                 .Where(b => b.UserId == user!.Id)
-                .Where(b => changeBoardsOrderForm.Boards.Contains(b.Id))
-                .OrderBy(s => changeBoardsOrderForm.Boards.IndexOf(s.Id))
+                .Where(b => changeBoardsOrderForm.Elements.Contains(b.Id))
+                .OrderBy(s => changeBoardsOrderForm.Elements.IndexOf(s.Id))
             .ToList();
 
             var allBoardsBelongToOneStatus = boards.All(s => s.Archived == false);

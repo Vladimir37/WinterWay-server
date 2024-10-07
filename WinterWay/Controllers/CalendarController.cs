@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database;
@@ -36,6 +35,11 @@ namespace WinterWay.Controllers
                 .Where(b => b.Archived == false)
                 .Count();
 
+            if (createCalendarForm.DefaultValue != null && !_calendarService.Validate(createCalendarForm.DefaultValue, -1, createCalendarForm.Type))
+            {
+                return BadRequest(new ApiError(InternalError.InvalidForm, "Invalid default value"));
+            }
+
             var newCalendar = new CalendarModel
             {
                 Name = createCalendarForm.Name,
@@ -44,6 +48,8 @@ namespace WinterWay.Controllers
                 SerializedDefaultValue = createCalendarForm.DefaultValue,
                 SortOrder = calendarsTotal,
                 Archived = false,
+                CreationDate = DateTime.UtcNow,
+                ArchivingDate = null,
                 UserId = user!.Id
             };
 
@@ -106,6 +112,14 @@ namespace WinterWay.Controllers
 
             targetCalendar.Archived = changeArchiveStatusForm.Status;
             targetCalendar.SortOrder = countOfCalendarsInNewStatus;
+            if (changeArchiveStatusForm.Status)
+            {
+                targetCalendar.ArchivingDate = DateTime.UtcNow;
+            } 
+            else
+            {
+                targetCalendar.ArchivingDate = null;
+            }
             _db.SaveChanges();
 
             var otherCalendarsInOldStatus = _db.Calendars
@@ -124,17 +138,17 @@ namespace WinterWay.Controllers
         }
 
         [HttpPost("change-calendars-order")]
-        public async Task<IActionResult> ChangeCalendarsOrder([FromBody] ChangeCalendarsOrderDTO changeCalendarsOrderForm)
+        public async Task<IActionResult> ChangeCalendarsOrder([FromBody] ChangeElementsOrderDTO changeCalendarsOrderForm)
         {
             var user = await _userManager.GetUserAsync(User);
 
             var calendars = _db.Calendars
-                .Where(b => changeCalendarsOrderForm.Calendars.Contains(b.Id))
-                .OrderBy(s => changeCalendarsOrderForm.Calendars.IndexOf(s.Id))
-                .Where(b => b.UserId == user!.Id)
+                .Where(c => changeCalendarsOrderForm.Elements.Contains(c.Id))
+                .OrderBy(c => changeCalendarsOrderForm.Elements.IndexOf(c.Id))
+                .Where(c => c.UserId == user!.Id)
                 .ToList();
 
-            var allCalendarsBelongToOneStatus = calendars.All(s => s.Archived == false);
+            var allCalendarsBelongToOneStatus = calendars.All(c => c.Archived == false);
 
             if (!allCalendarsBelongToOneStatus)
             {

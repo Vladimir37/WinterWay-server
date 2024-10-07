@@ -2,9 +2,9 @@
 
 namespace WinterWay.Models.DTOs.Requests
 {
-    public class ChangeTasksOrderDTO
+    public class ChangeElementsOrderDTO
     {
         [Required]
-        public List<int> Tasks { get; set; } = new List<int>();
+        public List<int> Elements { get; set; } = new List<int>();
     }
 }

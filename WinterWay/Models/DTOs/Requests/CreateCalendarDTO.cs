@@ -12,7 +12,6 @@ namespace WinterWay.Models.DTOs.Requests
         [EnumValidation(typeof(CalendarType))]
         public CalendarType Type { get; set; }
         public string Color { get; set; }
-        [Required]
         public string DefaultValue { get; set; }
     }
 }

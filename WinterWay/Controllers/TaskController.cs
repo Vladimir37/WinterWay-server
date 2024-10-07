@@ -247,15 +247,15 @@ namespace WinterWay.Controllers
         }
 
         [HttpPost("change-tasks-order")]
-        public async Task<IActionResult> ChangeTasksOrder([FromBody] ChangeTasksOrderDTO changeTasksOrderForm)
+        public async Task<IActionResult> ChangeTasksOrder([FromBody] ChangeElementsOrderDTO changeTasksOrderForm)
         {
             var user = await _userManager.GetUserAsync(User);
 
             var tasks = _db.Tasks
                 .Include(t => t.Board)
-                .Where(t => changeTasksOrderForm.Tasks.Contains(t.Id))
+                .Where(t => changeTasksOrderForm.Elements.Contains(t.Id))
                 .Where(t => t.Board.UserId == user!.Id)
-                .OrderBy(t => changeTasksOrderForm.Tasks.IndexOf(t.Id))
+                .OrderBy(t => changeTasksOrderForm.Elements.IndexOf(t.Id))
                 .ToList();
 
             bool allTasksBelongToOneSprint = tasks.All(s => s.SprintId == tasks.First().SprintId);

@@ -1,5 +1,7 @@
-﻿using WinterWay.Data;
+﻿using System.Globalization;
+using WinterWay.Data;
 using WinterWay.Enums;
+using WinterWay.Models.Database;
 
 namespace WinterWay.Services
 {
@@ -22,6 +24,21 @@ namespace WinterWay.Services
                 CalendarType.Fixed => ValidateFixedValue(val, calendarId),
                 _ => false
             };
+        }
+
+        public bool ParseDate(string val, out DateOnly parsedDate)
+        {
+            var culture = CultureInfo.InvariantCulture;
+            var style = DateTimeStyles.None;
+
+            if (DateOnly.TryParseExact(val, "yyyy-MM-dd", culture, style, out DateOnly resultDate))
+            {
+                parsedDate = resultDate;
+                return true;
+
+            }
+            parsedDate = DateOnly.MinValue;
+            return false;
         }
 
         private bool ValidateBool(string val)

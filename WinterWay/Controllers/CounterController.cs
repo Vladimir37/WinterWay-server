@@ -119,16 +119,16 @@ namespace WinterWay.Controllers
         }
 
         [HttpPost("change-subtasks-order")]
-        public async Task<IActionResult> ChangeSubtasksOrder([FromBody] ChangeSubtaskOrTextCounterOrderDTO changeOrderForm)
+        public async Task<IActionResult> ChangeSubtasksOrder([FromBody] ChangeElementsOrderDTO changeOrderForm)
         {
             var user = await _userManager.GetUserAsync(User);
 
             var subtasks = _db.Subtasks
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Board)
-                .Where(s => changeOrderForm.Subtasks.Contains(s.Id))
+                .Where(s => changeOrderForm.Elements.Contains(s.Id))
                 .Where(s => s.Task.Board.UserId == user!.Id)
-                .OrderBy(s => changeOrderForm.Subtasks.IndexOf(s.Id))
+                .OrderBy(s => changeOrderForm.Elements.IndexOf(s.Id))
                 .ToList();
 
             bool allSubtasksBelongToOneTask = subtasks.All(s => s.TaskId == subtasks.First().TaskId);
@@ -252,7 +252,7 @@ namespace WinterWay.Controllers
         }
 
         [HttpPost("change-text-counters-order")]
-        public async Task<IActionResult> ChangeTextCountersOrder([FromBody] ChangeSubtaskOrTextCounterOrderDTO changeOrderForm)
+        public async Task<IActionResult> ChangeTextCountersOrder([FromBody] ChangeElementsOrderDTO changeOrderForm)
         {
             var user = await _userManager.GetUserAsync(User);
 
@@ -261,10 +261,10 @@ namespace WinterWay.Controllers
                 .ThenInclude(t => t.Board)
                 .Include(t => t.Task)
                 .ThenInclude(t => t.TextCounters)
-                .Where(t => changeOrderForm.Subtasks.Contains(t.Id))
+                .Where(t => changeOrderForm.Elements.Contains(t.Id))
                 .Where(t => t.Task.Board.UserId == user!.Id)
-                .OrderBy(t => changeOrderForm.Subtasks.IndexOf(t.Id))
-                .ToList();
+                .OrderBy(t => changeOrderForm.Elements.IndexOf(t.Id))
+                .ToList(); 
 
             bool allTextCountersBelongToOneTask = textCounters.All(s => s.TaskId == textCounters.First().TaskId);
 

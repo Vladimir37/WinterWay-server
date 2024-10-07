@@ -11,7 +11,9 @@ namespace WinterWay.Models.Database
         public string? SerializedDefaultValue { get; set; }
         public int SortOrder { get; set; }
         public bool Archived { get; set; }
-        
+        public DateTime CreationDate { get; set; }
+        public DateTime? ArchivingDate { get; set; }
+
         public string UserId { get; set; }
         public UserModel User { get; set; }
         public List<CalendarRecordModel> CalendarRecords { get; set; }

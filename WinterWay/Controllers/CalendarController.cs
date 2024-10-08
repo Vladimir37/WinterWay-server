@@ -35,7 +35,7 @@ namespace WinterWay.Controllers
                 .Where(b => b.Archived == false)
                 .Count();
 
-            if (createCalendarForm.DefaultValue != null && !_calendarService.Validate(createCalendarForm.DefaultValue, -1, createCalendarForm.Type))
+            if (createCalendarForm.SerializedDefaultValue != null && !_calendarService.Validate(createCalendarForm.SerializedDefaultValue, -1, createCalendarForm.Type))
             {
                 return BadRequest(new ApiError(InternalError.InvalidForm, "Invalid default value"));
             }
@@ -45,7 +45,7 @@ namespace WinterWay.Controllers
                 Name = createCalendarForm.Name,
                 Type = createCalendarForm.Type,
                 Color = createCalendarForm.Color,
-                SerializedDefaultValue = createCalendarForm.DefaultValue,
+                SerializedDefaultValue = createCalendarForm.SerializedDefaultValue,
                 SortOrder = calendarsTotal,
                 Archived = false,
                 CreationDate = DateTime.UtcNow,
@@ -181,8 +181,24 @@ namespace WinterWay.Controllers
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Calendar does not exists"));
             }
 
+            var removedCalendarArchiveStatus = targetCalendar.Archived;
+
             _db.Calendars.Remove(targetCalendar);
             _db.SaveChanges();
+
+            var otherCalendars = _db.Calendars
+                .Where(b => b.UserId == user!.Id)
+                .Where(b => b.Archived == removedCalendarArchiveStatus)
+                .ToList();
+
+            var num = 0;
+            foreach (var calendar in otherCalendars)
+            {
+                calendar.SortOrder = num;
+                num++;
+            }
+            _db.SaveChanges();
+
             return Ok("Calendar has been removed");
         }
 

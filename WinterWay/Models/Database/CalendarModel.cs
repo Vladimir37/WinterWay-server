@@ -1,4 +1,5 @@
-﻿using WinterWay.Enums;
+﻿using System.Text.Json.Serialization;
+using WinterWay.Enums;
 
 namespace WinterWay.Models.Database
 {
@@ -15,6 +16,7 @@ namespace WinterWay.Models.Database
         public DateTime? ArchivingDate { get; set; }
 
         public string UserId { get; set; }
+        [JsonIgnore]
         public UserModel User { get; set; }
         public List<CalendarRecordModel> CalendarRecords { get; set; }
         public List<CalendarValueModel> CalendarValues { get; set; }

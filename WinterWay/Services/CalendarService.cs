@@ -69,6 +69,7 @@ namespace WinterWay.Services
             return _db.CalendarValues
                 .Where(cv => cv.CalendarId == calendarId)
                 .Where(cv => cv.Id == valueId)
+                .Where(cv => !cv.Archived)
                 .Any();
         }
     }

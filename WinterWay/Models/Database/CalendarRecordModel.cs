@@ -1,4 +1,5 @@
-﻿using WinterWay.Enums;
+﻿using System.Text.Json.Serialization;
+using WinterWay.Enums;
 
 namespace WinterWay.Models.Database
 {
@@ -10,10 +11,12 @@ namespace WinterWay.Models.Database
         public string? Text { get; set; }
 
         public int CalendarId { get; set; }
+        [JsonIgnore]
         public CalendarModel Calendar { get; set; }
         public int? FixedValueId { get; set; }
         public CalendarValueModel? FixedValue { get; set; }
 
+        public CalendarRecordModel() { }
         public CalendarRecordModel(DateOnly date, string? text, int calendarId, CalendarType type, string serializedDefaultValue)
         {
             Date = date;

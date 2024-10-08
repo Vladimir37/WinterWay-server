@@ -33,6 +33,7 @@ namespace WinterWay.Controllers
             var targetCalendar = _db.Calendars
                 .Where(c => c.Id == createCalendarValueForm.CalendarId)
                 .Where(c => c.Type == CalendarType.Fixed)
+                .Where(c => !c.Archived)
                 .Where(c => c.UserId == user!.Id)
                 .FirstOrDefault();
 
@@ -57,7 +58,6 @@ namespace WinterWay.Controllers
 
             var valuesCount = _db.CalendarValues
                 .Include(c => c.Calendar)
-                .Where(cv => cv.Name == formattedName)
                 .Where(cv => cv.CalendarId == createCalendarValueForm.CalendarId)
                 .Where(cv => cv.Calendar.UserId == user!.Id)
                 .Count();
@@ -76,7 +76,7 @@ namespace WinterWay.Controllers
             return Ok(newCalendarValue);
         }
 
-        [HttpPost("edit-calendar-value")]
+        [HttpPost("edit")]
         public async Task<IActionResult> EditCalendarValue([FromBody] EditCalendarValueDTO editCalendarValueForm)
         {
             var user = await _userManager.GetUserAsync(User);

@@ -63,12 +63,13 @@ namespace WinterWay.Controllers
                 return BadRequest(new ApiError(InternalError.InvalidForm, "Invalid value"));
             }
 
-            var newRecord = new CalendarRecordModel(targetDay.Value, createCalendarRecordForm.Text, targetCalendar.Id, targetCalendar.Type, createCalendarRecordForm.SerializedValue);
+            var newRecord = new CalendarRecordModel(targetDay, createCalendarRecordForm.Text, targetCalendar.Id, targetCalendar.Type, createCalendarRecordForm.SerializedValue);
 
             if (createCalendarRecordForm.FillDefaultValues && targetCalendar.SerializedDefaultValue != null)
             {
                 var lastCalendarRecord = _db.CalendarRecords
                     .Where(cr => cr.CalendarId == targetCalendar.Id)
+                    .Where(cr => cr.Date < newRecord.Date)
                     .OrderByDescending(cr => cr.Date)
                     .FirstOrDefault();
 
@@ -79,7 +80,7 @@ namespace WinterWay.Controllers
 
                 List<CalendarRecordModel> daysBetween = new List<CalendarRecordModel>();
 
-                for (var stepDay = lastCalendarRecord.Date.AddDays(1); stepDay < newRecord.Date; stepDay.AddDays(1))
+                for (var stepDay = lastCalendarRecord.Date.AddDays(1); stepDay < newRecord.Date; stepDay = stepDay.AddDays(1))
                 {
                     var dayBetweenRecord = new CalendarRecordModel(stepDay, null, targetCalendar.Id, targetCalendar.Type, targetCalendar.SerializedDefaultValue);
                     daysBetween.Add(dayBetweenRecord);

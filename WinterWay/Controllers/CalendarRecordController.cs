@@ -90,7 +90,7 @@ namespace WinterWay.Controllers
             }
 
             _db.CalendarRecords.Add(newRecord);
-            _db.SaveChanges();
+            _db.SaveChanges(); 
             return Ok(newRecord);
         }
 
@@ -158,14 +158,14 @@ namespace WinterWay.Controllers
 
             var maxCountOfElements = int.MaxValue;
 
-            if (getCalendarRecordsForm.MaxCount != null)
+            if (getCalendarRecordsForm.MaxCount != null && getCalendarRecordsForm.MaxCount > 0)
             {
                 maxCountOfElements = getCalendarRecordsForm.MaxCount.Value;
             }
 
             var targetRecords = _db.CalendarRecords
                 .Include(cr => cr.Calendar)
-                .Where(cr => cr.Id == getCalendarRecordsForm.CalendarId)
+                .Where(cr => cr.CalendarId == getCalendarRecordsForm.CalendarId)
                 .Where(cr => cr.Calendar.UserId == user!.Id)
                 .Where(cr => cr.Date > dateStart)
                 .Where(cr => cr.Date < dateEnd)

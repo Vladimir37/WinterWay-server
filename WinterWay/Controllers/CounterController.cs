@@ -173,6 +173,7 @@ namespace WinterWay.Controllers
             
             var allOtherSubtasks = _db.Subtasks
                 .Where(s => s.TaskId == targetSubtask.TaskId)
+                .OrderBy(s => s.SortOrder)
                 .ToList();
 
             var num = 0;
@@ -306,7 +307,8 @@ namespace WinterWay.Controllers
             _db.SaveChanges();
 
             var allOtherTextCounters = _db.TextCounters
-                .Where(s => s.TaskId == targetTextCounter.TaskId)
+                .Where(t => t.TaskId == targetTextCounter.TaskId)
+                .OrderBy(t => t.SortOrder)
                 .ToList();
 
             var num = 0;

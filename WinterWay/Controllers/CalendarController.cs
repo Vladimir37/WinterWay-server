@@ -123,8 +123,9 @@ namespace WinterWay.Controllers
             _db.SaveChanges();
 
             var otherCalendarsInOldStatus = _db.Calendars
-                .Where(b => b.Archived != changeArchiveStatusForm.Status)
-                .Where(b => b.UserId == user!.Id)
+                .Where(c => c.Archived != changeArchiveStatusForm.Status)
+                .Where(c => c.UserId == user!.Id)
+                .OrderBy(c => c.SortOrder)
                 .ToList();
 
             var num = 0;
@@ -187,8 +188,9 @@ namespace WinterWay.Controllers
             _db.SaveChanges();
 
             var otherCalendars = _db.Calendars
-                .Where(b => b.UserId == user!.Id)
-                .Where(b => b.Archived == removedCalendarArchiveStatus)
+                .Where(c => c.UserId == user!.Id)
+                .Where(c => c.Archived == removedCalendarArchiveStatus)
+                .OrderBy(c => c.SortOrder)
                 .ToList();
 
             var num = 0;

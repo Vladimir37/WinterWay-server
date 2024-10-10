@@ -122,6 +122,7 @@ namespace WinterWay.Controllers
             var otherBoardsInOldStatus = _db.Boards
                 .Where(b => b.UserId == user!.Id)
                 .Where(b => b.Archived != changeArchiveStatusForm.Status)
+                .OrderBy(b => b.SortOrder)
                 .ToList();
 
             var num = 0;
@@ -223,6 +224,7 @@ namespace WinterWay.Controllers
             var otherArchivedBoards = _db.Boards
                 .Where(b => b.UserId == user!.Id)
                 .Where(b => b.Archived == true)
+                .OrderBy(b => b.SortOrder)
                 .ToList();
 
             var num = 0;

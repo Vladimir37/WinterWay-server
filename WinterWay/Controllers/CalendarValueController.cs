@@ -160,6 +160,7 @@ namespace WinterWay.Controllers
                 .Include(cv => cv.Calendar)
                 .Where(cv => cv.Archived == calendarValueArchiveStatus)
                 .Where(cv => cv.Calendar.UserId == user!.Id)
+                .OrderBy(cv => cv.SortOrder)
                 .ToList();
 
             var num = 0;
@@ -204,6 +205,7 @@ namespace WinterWay.Controllers
                 .Include(cv => cv.Calendar)
                 .Where(cv => cv.Archived != changeArchiveStatusForm.Status)
                 .Where(cv => cv.Calendar.UserId == user!.Id)
+                .OrderBy(cv => cv.SortOrder)
                 .ToList();
 
             var num = 0;

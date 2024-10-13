@@ -20,5 +20,6 @@ namespace WinterWay.Models.DTOs.Requests
         [Required]
         public int RollDays { get; set; }
         public bool Favorite { get; set; }
+        public bool NotificationActive { get; set; }
     }
 }

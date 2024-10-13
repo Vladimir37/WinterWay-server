@@ -32,7 +32,7 @@ namespace WinterWay.Controllers
 
             var boardsTotal = _db.Boards
                 .Where(b => b.UserId == user!.Id)
-                .Where(b => b.Archived == false)
+                .Where(b => !b.Archived)
                 .Count();
 
             var newBoard = new BoardModel
@@ -47,6 +47,7 @@ namespace WinterWay.Controllers
                 Favorite = false,
                 Archived = false,
                 SortOrder = boardsTotal,
+                NotificationActive = createBoardForm.RollType != RollType.None,
                 CreationDate = DateTime.UtcNow,
                 UserId = user!.Id,
             };
@@ -80,6 +81,7 @@ namespace WinterWay.Controllers
             targetBoard.RollDays = editBoardForm.RollDays;
             targetBoard.Color = editBoardForm.Color;
             targetBoard.Favorite = editBoardForm.Favorite;
+            targetBoard.NotificationActive = editBoardForm.NotificationActive;
             _db.SaveChanges();
             return Ok(targetBoard);
         }
@@ -103,7 +105,7 @@ namespace WinterWay.Controllers
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Active board does not exists"));
             }
 
-            if (changeArchiveStatusForm.Status == true && targetBoard.ActualSprint != null)
+            if (changeArchiveStatusForm.Status && targetBoard.ActualSprint != null)
             {
                 targetBoard.ActualSprint.Active = false;
                 targetBoard.ActualSprint.ClosingDate = DateTime.UtcNow;
@@ -147,7 +149,7 @@ namespace WinterWay.Controllers
                 .OrderBy(s => changeBoardsOrderForm.Elements.IndexOf(s.Id))
             .ToList();
 
-            var allBoardsBelongToOneStatus = boards.All(s => s.Archived == false);
+            var allBoardsBelongToOneStatus = boards.All(s => !s.Archived);
 
             if (!allBoardsBelongToOneStatus)
             {
@@ -199,7 +201,7 @@ namespace WinterWay.Controllers
             return Ok(targetBoard.ActualSprint);
         }
 
-        [HttpPost("delete")]
+        [HttpPost("remove")]
         public async Task<IActionResult> RemoveBoard([FromBody] IdDTO idForm)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -223,7 +225,7 @@ namespace WinterWay.Controllers
 
             var otherArchivedBoards = _db.Boards
                 .Where(b => b.UserId == user!.Id)
-                .Where(b => b.Archived == true)
+                .Where(b => b.Archived)
                 .OrderBy(b => b.SortOrder)
                 .ToList();
 
@@ -235,7 +237,7 @@ namespace WinterWay.Controllers
             }
             _db.SaveChanges();
 
-            return Ok("Board has been deleted");
+            return Ok("Board has been removed");
         }
 
         [HttpGet("all-boards")]

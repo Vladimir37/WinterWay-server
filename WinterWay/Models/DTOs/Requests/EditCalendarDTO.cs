@@ -12,5 +12,7 @@ namespace WinterWay.Models.DTOs.Requests
         public string Color { get; set; }
         [Required]
         public string SerializedDefaultValue { get; set; }
+        [Required]
+        public bool NotificationActive { get; set; }
     }
 }

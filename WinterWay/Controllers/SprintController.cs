@@ -86,8 +86,8 @@ namespace WinterWay.Controllers
             return Ok(targetSprint);
         }
 
-        [HttpPost("delete")]
-        public async Task<IActionResult> DeleteSprint([FromBody] IdDTO idForm)
+        [HttpPost("remove")]
+        public async Task<IActionResult> RemoveSprint([FromBody] IdDTO idForm)
         {
             var user = await _userManager.GetUserAsync(User);
 

@@ -48,6 +48,7 @@ builder.Services.AddControllers(options =>
 builder.Services.AddScoped<RollService>();
 builder.Services.AddScoped<CompleteTaskService>();
 builder.Services.AddScoped<CalendarService>();
+builder.Services.AddScoped<TimerService>();
 
 var app = builder.Build();
 

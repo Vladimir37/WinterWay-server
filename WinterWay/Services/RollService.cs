@@ -102,7 +102,7 @@ namespace WinterWay.Services
                     .Include(t => t.Board)
                     .Where(t => t.Board.UserId == board.UserId)
                     .Where(t => t.SprintId == backlogSprint.Id)
-                    .Where(t => t.IsDone == false)
+                    .Where(t => !t.IsDone)
                     .Count();
 
                 foreach (var task in tasks)
@@ -131,7 +131,7 @@ namespace WinterWay.Services
                     .Include(t => t.Board)
                     .Where(t => t.Board.UserId == board.UserId)
                     .Where(t => t.SprintId == sprint.Id)
-                    .Where(t => t.IsDone == false)
+                    .Where(t => !t.IsDone)
                     .Count();
 
                 foreach (var task in tasks)

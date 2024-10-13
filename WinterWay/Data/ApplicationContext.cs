@@ -16,6 +16,8 @@ namespace WinterWay.Data
         public DbSet<CalendarModel> Calendars { get; set; }
         public DbSet<CalendarRecordModel> CalendarRecords { get; set; }
         public DbSet<CalendarValueModel> CalendarValues { get; set; }
+        public DbSet<TimerModel> Timers { get; set; }
+        public DbSet<TimerSessionModel> TimerSessions { get; set; }
 
         public ApplicationContext(DbContextOptions<ApplicationContext> options)
             : base(options)

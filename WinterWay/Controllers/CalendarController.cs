@@ -32,7 +32,7 @@ namespace WinterWay.Controllers
 
             var calendarsTotal = _db.Calendars
                 .Where(b => b.UserId == user!.Id)
-                .Where(b => b.Archived == false)
+                .Where(b => !b.Archived)
                 .Count();
 
             if (createCalendarForm.SerializedDefaultValue != null && !_calendarService.Validate(createCalendarForm.SerializedDefaultValue, -1, createCalendarForm.Type))
@@ -48,6 +48,7 @@ namespace WinterWay.Controllers
                 SerializedDefaultValue = createCalendarForm.SerializedDefaultValue,
                 SortOrder = calendarsTotal,
                 Archived = false,
+                NotificationActive = true,
                 CreationDate = DateTime.UtcNow,
                 ArchivingDate = null,
                 UserId = user!.Id
@@ -81,6 +82,7 @@ namespace WinterWay.Controllers
             targetCalendar.Name = editCalendarForm.Name;
             targetCalendar.Color = editCalendarForm.Color;
             targetCalendar.SerializedDefaultValue = editCalendarForm.SerializedDefaultValue;
+            targetCalendar.NotificationActive = editCalendarForm.NotificationActive;
             _db.SaveChanges();
             return Ok(targetCalendar);
         }
@@ -149,7 +151,7 @@ namespace WinterWay.Controllers
                 .Where(c => c.UserId == user!.Id)
                 .ToList();
 
-            var allCalendarsBelongToOneStatus = calendars.All(c => c.Archived == false);
+            var allCalendarsBelongToOneStatus = calendars.All(c => !c.Archived);
 
             if (!allCalendarsBelongToOneStatus)
             {

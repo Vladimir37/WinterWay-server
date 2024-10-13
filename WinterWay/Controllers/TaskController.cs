@@ -59,7 +59,7 @@ namespace WinterWay.Controllers
             var otherTasksCount = _db.Tasks
                 .Include(t => t.Board)
                 .Where(t => t.Board.UserId == user!.Id)
-                .Where(t => t.IsDone == false)
+                .Where(t => !t.IsDone)
                 .Where(t => t.BoardId == createTaskForm.BoardId)
                 .Where(t => t.SprintId == createTaskForm.SprintId)
                 .Count();
@@ -180,8 +180,8 @@ namespace WinterWay.Controllers
                 .Include(t => t.Board)
                 .Where(t => t.Id == changeStatusForm.TaskId)
                 .Where(t => t.SprintId != null)
-                .Where(t => t.IsTemplate == false)
-                .Where(t => t.Board.IsBacklog == false)
+                .Where(t => !t.IsTemplate)
+                .Where(t => !t.Board.IsBacklog)
                 .Where(t => t.Board.UserId == user!.Id)
                 .FirstOrDefault();
 

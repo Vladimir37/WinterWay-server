@@ -12,6 +12,7 @@ namespace WinterWay.Models.Database
         public string? SerializedDefaultValue { get; set; }
         public int SortOrder { get; set; }
         public bool Archived { get; set; }
+        public bool NotificationActive { get; set; }
         public DateTime CreationDate { get; set; }
         public DateTime? ArchivingDate { get; set; }
 

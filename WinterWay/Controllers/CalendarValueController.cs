@@ -111,7 +111,7 @@ namespace WinterWay.Controllers
                 .Where(cv => cv.Calendar.UserId == user!.Id)
                 .ToList();
 
-            var allCalendarValuesBelongToOneStatus = calendarValues.All(s => s.Archived == false);
+            var allCalendarValuesBelongToOneStatus = calendarValues.All(s => !s.Archived);
 
             if (!allCalendarValuesBelongToOneStatus)
             {

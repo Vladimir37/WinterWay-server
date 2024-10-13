@@ -12,5 +12,6 @@ namespace WinterWay.Models.Database
         public SprintModel? BacklogSprint { get; set; }
         public List<BoardModel> Boards { get; set; } = new List<BoardModel>();
         public List<CalendarModel> Calendars { get; set; } = new List<CalendarModel>();
+        public List<TimerModel> Timers { get; set; } = new List<TimerModel>();
     }
 }

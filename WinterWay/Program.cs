@@ -49,6 +49,7 @@ builder.Services.AddScoped<RollService>();
 builder.Services.AddScoped<CompleteTaskService>();
 builder.Services.AddScoped<CalendarService>();
 builder.Services.AddScoped<TimerService>();
+builder.Services.AddScoped<NotificationService>();
 
 var app = builder.Build();
 

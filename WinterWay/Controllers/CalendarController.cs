@@ -18,11 +18,11 @@ namespace WinterWay.Controllers
         private readonly UserManager<UserModel> _userManager;
         private readonly CalendarService _calendarService;
 
-        public CalendarController(UserManager<UserModel> userManager, CalendarService calendarService, ApplicationContext db)
+        public CalendarController(ApplicationContext db, UserManager<UserModel> userManager, CalendarService calendarService)
         {
+            _db = db;
             _userManager = userManager;
             _calendarService = calendarService;
-            _db = db;
         }
 
         [HttpPost("create")]

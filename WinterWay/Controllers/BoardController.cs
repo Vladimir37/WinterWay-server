@@ -18,10 +18,10 @@ namespace WinterWay.Controllers
         private readonly UserManager<UserModel> _userManager;
         private readonly RollService _rollService;
 
-        public BoardController(UserManager<UserModel> userManager, ApplicationContext db, RollService rollService)
+        public BoardController(ApplicationContext db, UserManager<UserModel> userManager, RollService rollService)
         {
-            _userManager = userManager;
             _db = db;
+            _userManager = userManager;
             _rollService = rollService;
         }
 

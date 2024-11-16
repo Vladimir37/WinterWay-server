@@ -18,11 +18,11 @@ namespace WinterWay.Controllers
         private readonly UserManager<UserModel> _userManager;
         private readonly CompleteTaskService _completeTaskService;
 
-        public TaskController(UserManager<UserModel> userManager, CompleteTaskService completeTaskService, ApplicationContext db)
+        public TaskController(ApplicationContext db, UserManager<UserModel> userManager, CompleteTaskService completeTaskService)
         {
+            _db = db;
             _userManager = userManager;
             _completeTaskService = completeTaskService;
-            _db = db;
         }
 
         [HttpPost("create")]

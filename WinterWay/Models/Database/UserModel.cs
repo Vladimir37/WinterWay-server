@@ -13,5 +13,6 @@ namespace WinterWay.Models.Database
         public List<BoardModel> Boards { get; set; } = new List<BoardModel>();
         public List<CalendarModel> Calendars { get; set; } = new List<CalendarModel>();
         public List<TimerModel> Timers { get; set; } = new List<TimerModel>();
+        public List<NotificationModel> Notifications { get; set; } = new List<NotificationModel>();
     }
 }

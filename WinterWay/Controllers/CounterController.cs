@@ -18,10 +18,10 @@ namespace WinterWay.Controllers
         private readonly UserManager<UserModel> _userManager;
         private readonly CompleteTaskService _completeTaskService;
 
-        public CounterController(UserManager<UserModel> userManager, ApplicationContext db, CompleteTaskService completeTaskService)
+        public CounterController(ApplicationContext db, UserManager<UserModel> userManager, CompleteTaskService completeTaskService)
         {
-            _userManager = userManager;
             _db = db;
+            _userManager = userManager;
             _completeTaskService = completeTaskService;
         }
 

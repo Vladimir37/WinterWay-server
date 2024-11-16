@@ -4,6 +4,7 @@
     {
         TimeToRoll,
         CalendarRecordForToday,
+        TaskCounterReachedMaxValue,
         DayOnTimer,
         WeekOnTimer,
         MonthOnTimer,

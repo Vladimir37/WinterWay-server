@@ -73,6 +73,7 @@ namespace WinterWay.Controllers
 
             targetTimer.Name = editTimerForm.Name;
             targetTimer.Color = editTimerForm.Color;
+            targetTimer.NotificationActive = editTimerForm.NotificationActive;
             _db.SaveChanges();
             return Ok(targetTimer);
         }

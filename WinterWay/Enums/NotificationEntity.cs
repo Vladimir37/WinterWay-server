@@ -4,6 +4,7 @@
     {
         Board,
         Calendar,
-        TimerSession
+        TimerSession,
+        Task
     }
 }

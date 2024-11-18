@@ -14,6 +14,131 @@ namespace WinterWay.Services
             _db = db;
         }
 
+        public async Task<List<NotificationModel>> Calculate(string userId)
+        {
+            List<NotificationModel> newNotifications = new List<NotificationModel>();
+
+            newNotifications.AddRange(await CalculateSprints(userId));
+            newNotifications.AddRange(await CalculateCalendars(userId));
+            newNotifications.AddRange(await CalculateTimers(userId));
+            
+            return newNotifications;
+        }
+
+        private async Task<List<NotificationModel>> CalculateSprints(string userId)
+        {
+            var newNotifications = new List<NotificationModel>();
+            
+            var allUserNotification = await _db.Notifications
+                .Where(n => n.UserId == userId)
+                .Where(n => n.Type == NotificationType.TimeToRoll)
+                .ToListAsync();
+
+            var targetSprints = await _db.Sprints
+                .Include(s => s.Board)
+                .Where(s => s.Board.UserId == userId)
+                .Where(s => s.Active)
+                .Where(s => s.ExpirationDate > DateTime.UtcNow)
+                .Where(s => !allUserNotification
+                    .Select(n => n.EntityId)
+                    .Contains(s.Id)
+                )
+                .ToListAsync();
+
+            foreach (var sprint in targetSprints)
+            {
+                var newNotification = await CreateNotification(NotificationType.TimeToRoll, sprint.Id, userId);
+                if (newNotification != null)
+                {
+                    newNotifications.Add(newNotification);
+                }
+            }
+
+            return newNotifications;
+        }
+
+        private async Task<List<NotificationModel>> CalculateCalendars(string userId)
+        {
+            var newNotifications = new List<NotificationModel>();
+            
+            var allUserNotification = await _db.Notifications
+                .Where(n => n.UserId == userId)
+                .Where(n => n.Type == NotificationType.CalendarRecordForToday)
+                .ToListAsync();
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            var allTodayRecords = await _db.CalendarRecords
+                .Include(cr => cr.Calendar)
+                .Where(cr => cr.Date == today)
+                .Where(cr => cr.Calendar.UserId == userId)
+                .ToListAsync();
+
+            var targetCalendars = await _db.Calendars
+                .Where(c => c.UserId == userId)
+                .Where(c => !c.Archived)
+                .Where(c => !allTodayRecords
+                    .Where(cr => cr.CalendarId == c.Id)
+                    .Any()
+                )
+                .Where(c => !allUserNotification
+                    .Where(n => n.EntityId == c.Id)
+                    .Where(n => DateOnly.FromDateTime(n.CreationDate) == today)
+                    .Any()
+                )
+                .ToListAsync();
+            
+            foreach (var calendar in targetCalendars)
+            {
+                var newNotification = await CreateNotification(NotificationType.CalendarRecordForToday, calendar.Id, userId);
+                if (newNotification != null)
+                {
+                    newNotifications.Add(newNotification);
+                }
+            }
+
+            return newNotifications;
+        }
+
+        private async Task<List<NotificationModel>> CalculateTimers(string userId)
+        {
+            var newNotifications = new List<NotificationModel>();
+            
+            NotificationType[] timerTypes = [NotificationType.DayOnTimer, NotificationType.WeekOnTimer, NotificationType.MonthOnTimer, NotificationType.YearOnTimer];
+
+            var allUserNotification = await _db.Notifications
+                .Where(n => n.UserId == userId)
+                .Where(n => timerTypes.Contains(n.Type))
+                .ToListAsync();
+
+            var allTimerSessions = await _db.TimerSessions
+                .Include(ts => ts.Timer)
+                .Where(ts => ts.Active)
+                .Where(ts => ts.Timer.UserId == userId)
+                .ToListAsync();
+
+            foreach (var timerSession in allTimerSessions)
+            {
+                var targetNotificationType = GetMaxTimeSpan(timerSession.CreationDate);
+
+                var notificationAlreadyExists = allUserNotification
+                    .Where(n => n.Type == targetNotificationType)
+                    .Where(n => n.EntityId == timerSession.TimerId)
+                    .Any();
+                
+                if (targetNotificationType != null && !notificationAlreadyExists)
+                {
+                    var newNotification = await CreateNotification(NotificationType.CalendarRecordForToday, timerSession.TimerId, userId);
+                    if (newNotification != null)
+                    {
+                        newNotifications.Add(newNotification);
+                    }
+                }
+            }
+
+            return newNotifications;
+        }
+
         public async Task<NotificationModel?> CreateNotification(NotificationType type, int entityId, string userId)
         {
             var entityType = GetEntityType(type);
@@ -41,11 +166,26 @@ namespace WinterWay.Services
             return newNotification;
         }
 
+        private NotificationType? GetMaxTimeSpan(DateTime date)
+        {
+            DateTime now = DateTime.UtcNow;
+            TimeSpan difference = now - date;
+
+            return difference.TotalDays switch
+            {
+                >= 365 => NotificationType.YearOnTimer,
+                >= 30 => NotificationType.MonthOnTimer,
+                >= 7 => NotificationType.WeekOnTimer,
+                >= 1 => NotificationType.DayOnTimer,
+                _ => null
+            };
+        }
+
         private NotificationEntity GetEntityType(NotificationType type)
         {
             return type switch
             {
-                NotificationType.TimeToRoll => NotificationEntity.Board,
+                NotificationType.TimeToRoll => NotificationEntity.Sprint,
                 NotificationType.CalendarRecordForToday => NotificationEntity.Calendar,
                 NotificationType.TaskCounterReachedMaxValue => NotificationEntity.Task,
                 _ => NotificationEntity.TimerSession,
@@ -56,7 +196,7 @@ namespace WinterWay.Services
         {
             return entity switch
             {
-                NotificationEntity.Board => await GetNotificationBoardMessage(type, entityId, userId),
+                NotificationEntity.Sprint => await GetNotificationSprintMessage(type, entityId, userId),
                 NotificationEntity.Calendar => await GetNotificationCalendarMessage(type, entityId, userId),
                 NotificationEntity.TimerSession => await GetNotificationTimerMessage(type, entityId, userId),
                 NotificationEntity.Task => await GetNotificationTaskMessage(type, entityId, userId),
@@ -64,19 +204,20 @@ namespace WinterWay.Services
             };
         }
 
-        private async Task<string?> GetNotificationBoardMessage(NotificationType type, int entityId, string userId)
+        private async Task<string?> GetNotificationSprintMessage(NotificationType type, int entityId, string userId)
         {
-            var targetBoard = await _db.Boards
+            var targetSprint = await _db.Sprints
+                .Include(s => s.Board)
                 .Where(b => b.Id == entityId)
-                .Where(b => b.UserId == userId)
+                .Where(b => b.Board.UserId == userId)
                 .FirstOrDefaultAsync();
 
-            if (targetBoard == null)
+            if (targetSprint == null)
             {
                 return null;
             }
 
-            return $"Sprint \"{targetBoard.Name}\" is complete and ready for rollover";
+            return $"Sprint \"{targetSprint.Name}\" in \"{targetSprint.Board.Name}\" is complete and ready for rollover";
         }
         
         private async Task<string?> GetNotificationTimerMessage(NotificationType type, int entityId, string userId)

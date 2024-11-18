@@ -10,10 +10,12 @@ namespace WinterWay.Services
     public class CompleteTaskService
     {
         private readonly ApplicationContext _db;
+        private readonly NotificationService _notificationService;
 
-        public CompleteTaskService(ApplicationContext db)
+        public CompleteTaskService(ApplicationContext db, NotificationService notificationService)
         {
             _db = db;
+            _notificationService = notificationService;
         }
 
         public TaskModel ChangeStatus(TaskModel targetTask, bool status)
@@ -47,7 +49,7 @@ namespace WinterWay.Services
             return targetTask;
         }
 
-        public TaskModel CheckAutocompleteStatus(TaskModel targetTask)
+        public async Task<TaskModel> CheckAutocompleteStatus(TaskModel targetTask, string userId)
         {
             bool needsToBeClosed = false;
 
@@ -65,6 +67,7 @@ namespace WinterWay.Services
             if (needsToBeClosed && !targetTask.IsDone)
             {
                 ChangeStatus(targetTask, true);
+                await _notificationService.CreateNotification(NotificationType.TaskCounterReachedMaxValue, targetTask.Id, userId);
             }
 
             return targetTask;

@@ -50,6 +50,15 @@ namespace WinterWay.Controllers
             return Ok(allNotifications);
         }
 
+        [HttpGet("calculate")]
+        public async Task<IActionResult> Calculate()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            
+            //
+        }
+
+        [HttpPost("read")]
         public async Task<IActionResult> Read([FromBody] ChangeNotificationStatusDTO changeNotificationStatusForm)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -69,6 +78,7 @@ namespace WinterWay.Controllers
             return Ok(targetNotifications);
         }
         
+        [HttpPost("archive")]
         public async Task<IActionResult> Archive([FromBody] ChangeNotificationStatusDTO changeNotificationStatusForm)
         {
             var user = await _userManager.GetUserAsync(User);

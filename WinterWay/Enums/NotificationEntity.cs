@@ -2,7 +2,7 @@
 {
     public enum NotificationEntity
     {
-        Board,
+        Sprint,
         Calendar,
         TimerSession,
         Task

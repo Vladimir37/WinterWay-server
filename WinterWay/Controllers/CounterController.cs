@@ -111,7 +111,7 @@ namespace WinterWay.Controllers
 
             if (changeStatusForm.Status)
             {
-                var finalTask = _completeTaskService.CheckAutocompleteStatus(targetSubtask.Task);
+                var finalTask = await _completeTaskService.CheckAutocompleteStatus(targetSubtask.Task, user!.Id);
                 return Ok(finalTask);
             }
 
@@ -222,7 +222,7 @@ namespace WinterWay.Controllers
             _db.TextCounters.Add(newTextCounter);
             _db.SaveChanges();
 
-            var finalTask = _completeTaskService.CheckAutocompleteStatus(targetTask);
+            var finalTask = await _completeTaskService.CheckAutocompleteStatus(targetTask, user!.Id);
 
             return Ok(finalTask);
         }
@@ -365,7 +365,7 @@ namespace WinterWay.Controllers
 
             targetNumericCounter.Value = changeNumericCounterValueForm.Value;
             _db.SaveChanges();
-            var finalTask = _completeTaskService.CheckAutocompleteStatus(targetNumericCounter.Task);
+            var finalTask = await _completeTaskService.CheckAutocompleteStatus(targetNumericCounter.Task, user!.Id);
             return Ok(finalTask);
         }
     }

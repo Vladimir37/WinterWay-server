@@ -25,7 +25,7 @@ namespace WinterWay.Services
             _maxOtherBackgroundNum = _config.GetValue<int>("Images:OtherImagesMaxNum");
         }
 
-        public int RollSprint(BoardModel board, List<int>? spilloverTasks)
+        public async Task<int> RollSprint(BoardModel board, List<int>? spilloverTasks)
         {
             int lastImage = -1;
             if (board.ActualSprint != null)
@@ -53,25 +53,25 @@ namespace WinterWay.Services
             };
             _db.Sprints.Add(newSprint);
             board.ActualSprint = newSprint;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            var templateTasks = _db.Tasks
+            var templateTasks = await _db.Tasks
                 .Where(t => t.BoardId == board.Id && t.Sprint == null && t.IsTemplate)
                 .Include(t => t.NumericCounter)
                 .Include(t => t.TextCounters)
                 .Include(t => t.Subtasks)
-                .ToList();
+                .ToListAsync();
 
             var clonedTask = templateTasks.Select(t => t.CloneToNewSprint(newSprint)).ToList();
 
             _db.Tasks.AddRange(clonedTask);
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            return MoveTasksToNewSprint(board, newSprint, spilloverTasks);
+            return await MoveTasksToNewSprint(board, newSprint, spilloverTasks);
         }
 
-        public void GenerateResult(SprintModel sprint, int tasksSpill, int tasksToBacklog)
+        public async Task GenerateResult(SprintModel sprint, int tasksSpill, int tasksToBacklog)
         {
             TimeSpan? difference = sprint.ClosingDate - sprint.CreationDate;
             int sprintDuration = (int)Math.Ceiling(difference!.Value.TotalDays);
@@ -87,23 +87,23 @@ namespace WinterWay.Services
             };
             _db.SprintResults.Add(result);
             sprint.SprintResult = result;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public int MoveTasksToBacklog(BoardModel board, SprintModel backlogSprint, List<int>? tasksToBacklog)
+        public async Task<int> MoveTasksToBacklog(BoardModel board, SprintModel backlogSprint, List<int>? tasksToBacklog)
         {
             if (tasksToBacklog != null && tasksToBacklog.Count > 0)
             {
-                var tasks = _db.Tasks
+                var tasks = await _db.Tasks
                     .Where(t => t.Board == board && tasksToBacklog.Contains(t.Id))
-                    .ToList();
+                    .ToListAsync();
 
-                var tasksInBacklogCount = _db.Tasks
+                var tasksInBacklogCount = await _db.Tasks
                     .Include(t => t.Board)
                     .Where(t => t.Board.UserId == board.UserId)
                     .Where(t => t.SprintId == backlogSprint.Id)
                     .Where(t => !t.IsDone)
-                    .Count();
+                    .CountAsync();
 
                 foreach (var task in tasks)
                 {
@@ -113,26 +113,26 @@ namespace WinterWay.Services
                     task.SortOrder = tasksInBacklogCount;
                     tasksInBacklogCount++;
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
                 return tasks.Count;
             }
             return 0;
         }
 
-        private int MoveTasksToNewSprint(BoardModel board, SprintModel sprint, List<int>? tasksToNewSprint)
+        private async Task<int> MoveTasksToNewSprint(BoardModel board, SprintModel sprint, List<int>? tasksToNewSprint)
         {
             if (tasksToNewSprint != null && tasksToNewSprint.Count > 0)
             {
-                var tasks = _db.Tasks
+                var tasks = await _db.Tasks
                     .Where(t => t.Board == board && tasksToNewSprint.Contains(t.Id))
-                    .ToList();
+                    .ToListAsync();
 
-                var tasksInSprintCount = _db.Tasks
+                var tasksInSprintCount = await _db.Tasks
                     .Include(t => t.Board)
                     .Where(t => t.Board.UserId == board.UserId)
                     .Where(t => t.SprintId == sprint.Id)
                     .Where(t => !t.IsDone)
-                    .Count();
+                    .CountAsync();
 
                 foreach (var task in tasks)
                 {
@@ -142,7 +142,7 @@ namespace WinterWay.Services
                     tasksInSprintCount++;
                 }
 
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
                 return tasks.Count;
             }
             return 0;

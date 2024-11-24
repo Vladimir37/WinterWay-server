@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
 using WinterWay.Enums;
-using WinterWay.Models.Database;
 
 namespace WinterWay.Services
 {
@@ -14,14 +14,14 @@ namespace WinterWay.Services
             _db = db;
         }
 
-        public bool Validate(string val, int calendarId, CalendarType calendarType)
+        public async Task<bool> Validate(string val, int calendarId, CalendarType calendarType)
         {
             return calendarType switch
             {
                 CalendarType.Boolean => ValidateBool(val),
                 CalendarType.Numeric => ValidateNumeric(val),
                 CalendarType.Time => ValidateTime(val),
-                CalendarType.Fixed => ValidateFixedValue(val, calendarId),
+                CalendarType.Fixed => await ValidateFixedValue(val, calendarId),
                 _ => false
             };
         }
@@ -43,12 +43,12 @@ namespace WinterWay.Services
 
         private bool ValidateBool(string val)
         {
-            return bool.TryParse(val, out bool result);
+            return bool.TryParse(val, out _);
         }
 
         private bool ValidateNumeric(string val)
         {
-            return int.TryParse(val, out int result);
+            return int.TryParse(val, out _);
         }
 
         private bool ValidateTime(string val)
@@ -57,7 +57,7 @@ namespace WinterWay.Services
             return regex.IsMatch(val);
         }
 
-        private bool ValidateFixedValue(string val, int calendarId)
+        private async Task<bool> ValidateFixedValue(string val, int calendarId)
         {
             var valueIdValid = int.TryParse(val, out int valueId);
 
@@ -66,11 +66,11 @@ namespace WinterWay.Services
                 return false;
             }
 
-            return _db.CalendarValues
+            return await _db.CalendarValues
                 .Where(cv => cv.CalendarId == calendarId)
                 .Where(cv => cv.Id == valueId)
                 .Where(cv => !cv.Archived)
-                .Any();
+                .AnyAsync();
         }
     }
 }

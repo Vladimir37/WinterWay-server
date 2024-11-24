@@ -30,11 +30,11 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetCalendar = _db.Calendars
+            var targetCalendar = await _db.Calendars
                 .Where(c => c.Id == createCalendarRecordForm.CalendarId)
                 .Where(c => !c.Archived)
                 .Where(c => c.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetCalendar == null)
             {
@@ -48,17 +48,17 @@ namespace WinterWay.Controllers
                 return BadRequest(new ApiError(InternalError.InvalidForm, "Invalid date format"));
             }
 
-            var isDateAlreadyExists = _db.CalendarRecords
+            var isDateAlreadyExists = await _db.CalendarRecords
                 .Where(cr => cr.CalendarId == targetCalendar.Id)
                 .Where(cr => cr.Date == targetDay)
-                .Any();
+                .AnyAsync();
 
             if (isDateAlreadyExists)
             {
                 return BadRequest(new ApiError(InternalError.InvalidForm, "A record for this day already exists in this calendar"));
             }
 
-            if (!_calendarService.Validate(createCalendarRecordForm.SerializedValue, targetCalendar.Id, targetCalendar.Type))
+            if (!await _calendarService.Validate(createCalendarRecordForm.SerializedValue, targetCalendar.Id, targetCalendar.Type))
             {
                 return BadRequest(new ApiError(InternalError.InvalidForm, "Invalid value"));
             }
@@ -67,11 +67,11 @@ namespace WinterWay.Controllers
 
             if (createCalendarRecordForm.FillDefaultValues && targetCalendar.SerializedDefaultValue != null)
             {
-                var lastCalendarRecord = _db.CalendarRecords
+                var lastCalendarRecord = await _db.CalendarRecords
                     .Where(cr => cr.CalendarId == targetCalendar.Id)
                     .Where(cr => cr.Date < newRecord.Date)
                     .OrderByDescending(cr => cr.Date)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
 
                 if (lastCalendarRecord == null)
                 {
@@ -90,7 +90,7 @@ namespace WinterWay.Controllers
             }
 
             _db.CalendarRecords.Add(newRecord);
-            _db.SaveChanges(); 
+            await _db.SaveChangesAsync();
             return Ok(newRecord);
         }
 
@@ -99,11 +99,11 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetCalendarRecord = _db.CalendarRecords
+            var targetCalendarRecord = await _db.CalendarRecords
                 .Include(cr => cr.Calendar)
                 .Where(cr => cr.Id == editCalendarRecordForm.CalendarRecordId)
                 .Where(cr => cr.Calendar.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetCalendarRecord == null)
             {
@@ -112,7 +112,7 @@ namespace WinterWay.Controllers
 
             targetCalendarRecord.Text = editCalendarRecordForm.Text;
             targetCalendarRecord.SetNewValue(editCalendarRecordForm.SerializedValue, targetCalendarRecord.Calendar.Type);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return Ok(targetCalendarRecord);
         }
@@ -122,11 +122,11 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetCalendarRecord = _db.CalendarRecords
+            var targetCalendarRecord = await _db.CalendarRecords
                 .Include(cr => cr.Calendar)
                 .Where(cr => cr.Id == idForm.Id)
                 .Where(cr => cr.Calendar.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetCalendarRecord == null)
             {
@@ -134,7 +134,7 @@ namespace WinterWay.Controllers
             }
 
             _db.CalendarRecords.Remove(targetCalendarRecord);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok("Calendar record has been deleted");
         }
 

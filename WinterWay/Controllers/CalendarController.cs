@@ -30,12 +30,12 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var calendarsTotal = _db.Calendars
+            var calendarsTotal = await _db.Calendars
                 .Where(b => b.UserId == user!.Id)
                 .Where(b => !b.Archived)
-                .Count();
+                .CountAsync();
 
-            if (createCalendarForm.SerializedDefaultValue != null && !_calendarService.Validate(createCalendarForm.SerializedDefaultValue, -1, createCalendarForm.Type))
+            if (createCalendarForm.SerializedDefaultValue != null && !await _calendarService.Validate(createCalendarForm.SerializedDefaultValue, -1, createCalendarForm.Type))
             {
                 return BadRequest(new ApiError(InternalError.InvalidForm, "Invalid default value"));
             }
@@ -55,7 +55,7 @@ namespace WinterWay.Controllers
             };
 
             _db.Calendars.Add(newCalendar);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(newCalendar);
         }
 
@@ -64,17 +64,17 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetCalendar = _db.Calendars
+            var targetCalendar = await _db.Calendars
                 .Where(c => c.Id == editCalendarForm.CalendarId)
                 .Where(c => c.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetCalendar == null)
             {
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Calendar does not exists"));
             }
 
-            if (!_calendarService.Validate(editCalendarForm.SerializedDefaultValue, targetCalendar.Id, targetCalendar.Type))
+            if (!await _calendarService.Validate(editCalendarForm.SerializedDefaultValue, targetCalendar.Id, targetCalendar.Type))
             {
                 return BadRequest(new ApiError(InternalError.InvalidForm, "Invalid default value"));
             }
@@ -83,7 +83,7 @@ namespace WinterWay.Controllers
             targetCalendar.Color = editCalendarForm.Color;
             targetCalendar.SerializedDefaultValue = editCalendarForm.SerializedDefaultValue;
             targetCalendar.NotificationActive = editCalendarForm.NotificationActive;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(targetCalendar);
         }
 
@@ -92,10 +92,10 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetCalendar = _db.Calendars
+            var targetCalendar = await _db.Calendars
                 .Where(c => c.Id == changeArchiveStatusForm.Id)
                 .Where(c => c.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetCalendar == null)
             {
@@ -107,10 +107,10 @@ namespace WinterWay.Controllers
                 return BadRequest(new ApiError(InternalError.InvalidForm, "The new calendar status is no different from the old one"));
             }
 
-            var countOfCalendarsInNewStatus = _db.Calendars
+            var countOfCalendarsInNewStatus = await _db.Calendars
                 .Where(c => c.Archived == changeArchiveStatusForm.Status)
                 .Where(c => c.UserId == user!.Id)
-                .Count();
+                .CountAsync();
 
             targetCalendar.Archived = changeArchiveStatusForm.Status;
             targetCalendar.SortOrder = countOfCalendarsInNewStatus;
@@ -122,13 +122,13 @@ namespace WinterWay.Controllers
             {
                 targetCalendar.ArchivingDate = null;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            var otherCalendarsInOldStatus = _db.Calendars
+            var otherCalendarsInOldStatus = await _db.Calendars
                 .Where(c => c.Archived != changeArchiveStatusForm.Status)
                 .Where(c => c.UserId == user!.Id)
                 .OrderBy(c => c.SortOrder)
-                .ToList();
+                .ToListAsync();
 
             var num = 0;
             foreach (var calendar in otherCalendarsInOldStatus)
@@ -136,7 +136,7 @@ namespace WinterWay.Controllers
                 calendar.SortOrder = num;
                 num++;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(targetCalendar);
         }
 
@@ -145,11 +145,11 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var calendars = _db.Calendars
+            var calendars = await _db.Calendars
                 .Where(c => changeCalendarsOrderForm.Elements.Contains(c.Id))
                 .OrderBy(c => changeCalendarsOrderForm.Elements.IndexOf(c.Id))
                 .Where(c => c.UserId == user!.Id)
-                .ToList();
+                .ToListAsync();
 
             var allCalendarsBelongToOneStatus = calendars.All(c => !c.Archived);
 
@@ -164,7 +164,7 @@ namespace WinterWay.Controllers
                 calendar.SortOrder = num;
                 num++;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return Ok(calendars);
         }
@@ -174,10 +174,10 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetCalendar = _db.Calendars
+            var targetCalendar = await _db.Calendars
                 .Where(c => c.Id == idForm.Id)
                 .Where(c => c.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetCalendar == null)
             {
@@ -187,13 +187,13 @@ namespace WinterWay.Controllers
             var removedCalendarArchiveStatus = targetCalendar.Archived;
 
             _db.Calendars.Remove(targetCalendar);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            var otherCalendars = _db.Calendars
+            var otherCalendars = await _db.Calendars
                 .Where(c => c.UserId == user!.Id)
                 .Where(c => c.Archived == removedCalendarArchiveStatus)
                 .OrderBy(c => c.SortOrder)
-                .ToList();
+                .ToListAsync();
 
             var num = 0;
             foreach (var calendar in otherCalendars)
@@ -201,7 +201,7 @@ namespace WinterWay.Controllers
                 calendar.SortOrder = num;
                 num++;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return Ok("Calendar has been removed");
         }
@@ -211,9 +211,9 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var allCalendars = _db.Calendars
+            var allCalendars = await _db.Calendars
                 .Where(c => c.UserId == user!.Id)
-                .ToList();
+                .ToListAsync();
 
             return Ok(allCalendars);
         }
@@ -223,12 +223,12 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetCalendar = _db.Calendars
+            var targetCalendar = await _db.Calendars
                 .Include(c => c.CalendarRecords)
                 .Include(c => c.CalendarValues)
                 .Where(c => c.Id == idForm.Id)
                 .Where(c => c.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             return Ok(targetCalendar);
         }

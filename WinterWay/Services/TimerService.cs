@@ -12,7 +12,7 @@ namespace WinterWay.Services
             _db = db;
         }
 
-        public TimerSessionModel StartTimer(TimerModel timerModel)
+        public async Task<TimerSessionModel> StartTimer(TimerModel timerModel)
         {
             var newTimerSession = new TimerSessionModel
             {
@@ -22,11 +22,11 @@ namespace WinterWay.Services
                 Timer = timerModel,
             };
             _db.TimerSessions.Add(newTimerSession);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return newTimerSession;
         }
 
-        public void StopTimer(TimerModel timerModel)
+        public async Task StopTimer(TimerModel timerModel)
         {
             _db.Entry(timerModel).Collection(t => t.TimerSessions).Load();
 
@@ -35,7 +35,7 @@ namespace WinterWay.Services
             {
                 targetTimerSession.StopDate = DateTime.UtcNow;
                 targetTimerSession.Active = false;
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
         }
     }

@@ -194,15 +194,15 @@ namespace WinterWay.Services
         {
             return entity switch
             {
-                NotificationEntity.Sprint => await GetNotificationSprintMessage(type, entityId, userId),
-                NotificationEntity.Calendar => await GetNotificationCalendarMessage(type, entityId, userId),
+                NotificationEntity.Sprint => await GetNotificationSprintMessage(entityId, userId),
+                NotificationEntity.Calendar => await GetNotificationCalendarMessage(entityId, userId),
                 NotificationEntity.TimerSession => await GetNotificationTimerMessage(type, entityId, userId),
-                NotificationEntity.Task => await GetNotificationTaskMessage(type, entityId, userId),
+                NotificationEntity.Task => await GetNotificationTaskMessage(entityId, userId),
                 _ => null,
             };
         }
 
-        private async Task<string?> GetNotificationSprintMessage(NotificationType type, int entityId, string userId)
+        private async Task<string?> GetNotificationSprintMessage(int entityId, string userId)
         {
             var targetSprint = await _db.Sprints
                 .Include(s => s.Board)
@@ -242,7 +242,7 @@ namespace WinterWay.Services
             return $"The \"{targetTimer.Name}\" timer has reached one {period}";
         }
         
-        private async Task<string?> GetNotificationCalendarMessage(NotificationType type, int entityId, string userId)
+        private async Task<string?> GetNotificationCalendarMessage(int entityId, string userId)
         {
             var targetCalendar = await _db.Calendars
                 .Where(c => c.Id == entityId)
@@ -257,7 +257,7 @@ namespace WinterWay.Services
             return $"You haven’t entered any data for today in the \"{targetCalendar.Name}\" calendar";
         }
         
-        private async Task<string?> GetNotificationTaskMessage(NotificationType type, int entityId, string userId)
+        private async Task<string?> GetNotificationTaskMessage(int entityId, string userId)
         {
             var targetTask = await _db.Tasks
                 .Include(t => t.Board)

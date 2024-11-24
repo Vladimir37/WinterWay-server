@@ -33,19 +33,19 @@ namespace WinterWay.Controllers
             BoardModel? targetBoard = null;
             SprintModel? targetSprint = null;
 
-            targetBoard = _db.Boards
+            targetBoard = await _db.Boards
                 .Where(b => b.UserId == user!.Id)
                 .Where(b => b.Id == createTaskForm.BoardId)
                 .Where(b => !b.Archived)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetBoard != null && createTaskForm.SprintId != null)
             {
-                targetSprint = _db.Sprints
+                targetSprint = await _db.Sprints
                     .Where(s => s.BoardId == targetBoard.Id)
                     .Where(s => s.Id == createTaskForm.SprintId)
                     .Where(s => s.Active)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
             }
 
             if (
@@ -56,13 +56,13 @@ namespace WinterWay.Controllers
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Board or sprint does not exists"));
             }
 
-            var otherTasksCount = _db.Tasks
+            var otherTasksCount = await _db.Tasks
                 .Include(t => t.Board)
                 .Where(t => t.Board.UserId == user!.Id)
                 .Where(t => !t.IsDone)
                 .Where(t => t.BoardId == createTaskForm.BoardId)
                 .Where(t => t.SprintId == createTaskForm.SprintId)
-                .Count();
+                .CountAsync();
 
             var creationDate = DateTime.UtcNow;
             var newTask = new TaskModel
@@ -84,7 +84,7 @@ namespace WinterWay.Controllers
             };
 
             _db.Tasks.Add(newTask);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(newTask);
         }
 
@@ -93,11 +93,11 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTask = _db.Tasks
+            var targetTask = await _db.Tasks
                 .Include(t => t.Board)
                 .Where(t => t.Id == editTaskForm.Id)
                 .Where(t => t.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTask == null)
             {
@@ -109,7 +109,7 @@ namespace WinterWay.Controllers
             targetTask.Color = editTaskForm.Color;
             targetTask.AutoComplete = editTaskForm.AutoComplete;
             targetTask.MaxCounter = editTaskForm.MaxCounter;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(targetTask);
         }
 
@@ -118,22 +118,22 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTask = _db.Tasks
+            var targetTask = await _db.Tasks
                 .Include(t => t.Board)
                 .Where(t => t.Id == moveTaskForm.TaskId)
                 .Where(t => t.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
-            var isBoardExists = _db.Boards
+            var isBoardExists = await _db.Boards
                 .Where(b => b.Id == moveTaskForm.BoardId)
                 .Where(b => b.UserId == user!.Id)
-                .Any();
-            var isSprintExists = _db.Sprints
+                .AnyAsync();
+            var isSprintExists = await _db.Sprints
                 .Include(s => s.Board)
                 .Where(s => s.Id == moveTaskForm.SprintId)
                 .Where(s => s.Active)
                 .Where(s => s.Board.UserId == user!.Id)
-                .Any();
+                .AnyAsync();
 
             if (!isBoardExists || !isSprintExists || targetTask == null)
             {
@@ -145,28 +145,28 @@ namespace WinterWay.Controllers
                 return BadRequest(new ApiError(InternalError.InvalidForm, "The old and new sprints are the same"));
             }
 
-            var tasksInSprintInStatusCount = _db.Tasks
+            var tasksInSprintInStatusCount = await _db.Tasks
                 .Include(t => t.Board)
                 .Where(t => t.IsDone == targetTask.IsDone)
                 .Where(t => t.SprintId == moveTaskForm.SprintId)
                 .Where(t => t.Board.UserId == user!.Id)
-                .Count();
+                .CountAsync();
 
             var oldSprintId = targetTask.SprintId;
 
             targetTask.BoardId = moveTaskForm.BoardId;
             targetTask.SprintId = moveTaskForm.SprintId;
             targetTask.SortOrder = tasksInSprintInStatusCount;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            var otherTasksInOldSprint = _db.Tasks
+            var otherTasksInOldSprint = await _db.Tasks
                 .Include(t => t.Board)
                 .Where(t => t.IsDone == targetTask.IsDone)
                 .Where(t => t.SprintId == oldSprintId)
                 .Where(t => t.Board.UserId == user!.Id)
-                .ToList();
+                .ToListAsync();
 
-            _completeTaskService.SortAllTasks(otherTasksInOldSprint);
+            await _completeTaskService.SortAllTasks(otherTasksInOldSprint);
 
             return Ok(targetTask);
         }
@@ -176,14 +176,14 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTask = _db.Tasks
+            var targetTask = await _db.Tasks
                 .Include(t => t.Board)
                 .Where(t => t.Id == changeStatusForm.TaskId)
                 .Where(t => t.SprintId != null)
                 .Where(t => !t.IsTemplate)
                 .Where(t => !t.Board.IsBacklog)
                 .Where(t => t.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTask == null)
             {
@@ -197,16 +197,16 @@ namespace WinterWay.Controllers
 
             var oldTaskStatus = targetTask.IsDone;
 
-            _completeTaskService.ChangeStatus(targetTask, changeStatusForm.Status);
+            await _completeTaskService.ChangeStatus(targetTask, changeStatusForm.Status);
 
-            var otherTasksWithOldStatus = _db.Tasks
+            var otherTasksWithOldStatus = await _db.Tasks
                 .Include(t => t.Board)
                 .Where(t => t.IsDone == oldTaskStatus)
                 .Where(t => t.SprintId == targetTask.SprintId)
                 .Where(t => t.Board.UserId == user!.Id)
-                .ToList();
+                .ToListAsync();
 
-            _completeTaskService.SortAllTasks(otherTasksWithOldStatus);
+            await _completeTaskService.SortAllTasks(otherTasksWithOldStatus);
 
             return Ok(targetTask);
         }
@@ -216,12 +216,12 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTask = _db.Tasks
+            var targetTask = await _db.Tasks
                 .Include(t => t.Board)
                 .Include(t => t.NumericCounter)
                 .Where(t => t.Id == changeTypeForm.TaskId)
                 .Where(t => t.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTask == null)
             {
@@ -242,7 +242,7 @@ namespace WinterWay.Controllers
                 targetTask.NumericCounter = newNumericCounter;
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(targetTask);
         }
 
@@ -251,12 +251,12 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var tasks = _db.Tasks
+            var tasks = await _db.Tasks
                 .Include(t => t.Board)
                 .Where(t => changeTasksOrderForm.Elements.Contains(t.Id))
                 .Where(t => t.Board.UserId == user!.Id)
                 .OrderBy(t => changeTasksOrderForm.Elements.IndexOf(t.Id))
-                .ToList();
+                .ToListAsync();
 
             bool allTasksBelongToOneSprint = tasks.All(s => s.SprintId == tasks.First().SprintId);
             bool allTasksBelongToOneBoard = tasks.All(s => s.BoardId == tasks.First().BoardId);
@@ -273,7 +273,7 @@ namespace WinterWay.Controllers
                 task.SortOrder = num;
                 num++;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return Ok(tasks);
         }
@@ -283,11 +283,11 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTask = _db.Tasks
+            var targetTask = await _db.Tasks
                 .Include(t => t.Board)
                 .Where(t => t.Id == idForm.Id)
                 .Where(t => t.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTask == null)
             {
@@ -299,32 +299,32 @@ namespace WinterWay.Controllers
             var oldTaskStatus = targetTask.IsDone;
 
             _db.Tasks.Remove(targetTask);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             List<TaskModel> otherTasksInSprintAndStatus = new List<TaskModel>();
 
             if (oldSprintId != null)
             {
-                otherTasksInSprintAndStatus = _db.Tasks
+                otherTasksInSprintAndStatus = await _db.Tasks
                     .Include(t => t.Board)
                     .Where(t => t.IsDone == oldTaskStatus)
                     .Where(t => t.SprintId == oldSprintId)
                     .Where(t => t.BoardId == oldBoardId)
                     .Where(t => t.Board.UserId == user!.Id)
-                    .ToList();
+                    .ToListAsync();
             } 
             else
             {
-                otherTasksInSprintAndStatus = _db.Tasks
+                otherTasksInSprintAndStatus = await _db.Tasks
                     .Include(t => t.Board)
                     .Where(t => t.IsDone == oldTaskStatus)
                     .Where(t => t.SprintId == null)
                     .Where(t => t.BoardId == oldBoardId)
                     .Where(t => t.Board.UserId == user!.Id)
-                    .ToList();
+                    .ToListAsync();
             }
 
-            _completeTaskService.SortAllTasks(otherTasksInSprintAndStatus);
+            await _completeTaskService.SortAllTasks(otherTasksInSprintAndStatus);
 
             return Ok("Task has been deleted");
         }
@@ -334,23 +334,23 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetSprintExists = _db.Sprints
+            var targetSprintExists = await _db.Sprints
                 .Include(s => s.Board)
                 .Where(s => s.Board.UserId == user!.Id)
                 .Where(s => s.Id == idForm.Id)
-                .Any();
+                .AnyAsync();
 
             if (!targetSprintExists)
             {
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Sprint does not exists"));
             }
 
-            var targetTasks = _db.Tasks
+            var targetTasks = await _db.Tasks
                 .Where(t => t.SprintId == idForm.Id)
                 .Include(t => t.Subtasks)
                 .Include(t => t.TextCounters)
                 .Include(t => t.NumericCounter)
-                .ToList();
+                .ToListAsync();
 
             return Ok(targetTasks);
         }
@@ -360,23 +360,23 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetBoardExists = _db.Boards
+            var targetBoardExists = await _db.Boards
                 .Where(s => s.UserId == user!.Id)
                 .Where(s => s.Id == idForm.Id)
-                .Any();
+                .AnyAsync();
 
             if (!targetBoardExists)
             {
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Board does not exists"));
             }
 
-            var targetTasks = _db.Tasks
+            var targetTasks = await _db.Tasks
                 .Where(t => t.BoardId == idForm.Id)
                 .Where(t => t.SprintId == null)
                 .Include(t => t.Subtasks)
                 .Include(t => t.TextCounters)
                 .Include(t => t.NumericCounter)
-                .ToList();
+                .ToListAsync();
 
             return Ok(targetTasks);
         }

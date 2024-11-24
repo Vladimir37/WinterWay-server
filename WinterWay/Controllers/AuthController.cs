@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
 using WinterWay.Enums;
 using WinterWay.Data;
 using WinterWay.Models.DTOs.Error;
@@ -77,7 +78,7 @@ namespace WinterWay.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Signup([FromBody] LoginDTO signupForm)
         {
-            if (!_registrationIsPossible || (_registrationForOnlyFirst && _userManager.Users.Any()))
+            if (!_registrationIsPossible || (_registrationForOnlyFirst && await _userManager.Users.AnyAsync()))
             {
                 return StatusCode(403, new ApiError(InternalError.RegistrationIsClosed, "Registration is closed"));
             }
@@ -130,7 +131,7 @@ namespace WinterWay.Controllers
             await _userManager.UpdateAsync(user);
             backlogBoard.ActualSprint = backlogSprint;
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             if (result.Succeeded)
             {
@@ -168,12 +169,12 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            if (!await _userManager.CheckPasswordAsync(user, changePasswordForm.OldPassword!))
+            if (!await _userManager.CheckPasswordAsync(user!, changePasswordForm.OldPassword!))
             {
                 return BadRequest(new ApiError(InternalError.InvalidUserData, "Incorrect password"));
             }
 
-            var result = await _userManager.ChangePasswordAsync(user, changePasswordForm.OldPassword!, changePasswordForm.NewPassword!);
+            var result = await _userManager.ChangePasswordAsync(user!, changePasswordForm.OldPassword!, changePasswordForm.NewPassword!);
             if (result.Succeeded)
             {
                 return Ok("Password has been changed");
@@ -193,7 +194,7 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            return Ok(new UserStatusDTO(user.Id, user.UserName, user.Theme, user.AutoCompleteTasks));
+            return Ok(new UserStatusDTO(user!.Id, user.UserName!, user.Theme, user.AutoCompleteTasks));
         }
 
         [HttpGet("app-status")]
@@ -206,7 +207,7 @@ namespace WinterWay.Controllers
             }
             else if (_registrationForOnlyFirst)
             {
-                return Ok(new AppStatusDTO(true, !_userManager.Users.Any(), _appName, _version));
+                return Ok(new AppStatusDTO(true, !await _userManager.Users.AnyAsync(), _appName, _version));
             }
             return Ok(new AppStatusDTO(true, true, _appName, _version));
         }

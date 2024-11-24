@@ -30,12 +30,12 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetCalendar = _db.Calendars
+            var targetCalendar = await _db.Calendars
                 .Where(c => c.Id == createCalendarValueForm.CalendarId)
                 .Where(c => c.Type == CalendarType.Fixed)
                 .Where(c => !c.Archived)
                 .Where(c => c.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetCalendar == null)
             {
@@ -44,23 +44,23 @@ namespace WinterWay.Controllers
 
             var formattedName = createCalendarValueForm.Name.Trim();
 
-            var isNameExists = _db.CalendarValues
+            var isNameExists = await _db.CalendarValues
                 .Include(cv => cv.Calendar)
                 .Where(cv => cv.Name == formattedName)
                 .Where(cv => cv.CalendarId == createCalendarValueForm.CalendarId)
                 .Where(cv => cv.Calendar.UserId == user!.Id)
-                .Any();
+                .AnyAsync();
 
             if (isNameExists)
             {
                 return BadRequest(new ApiError(InternalError.InvalidForm, "A value with this name already exists in this calendar"));
             }
 
-            var valuesCount = _db.CalendarValues
+            var valuesCount = await _db.CalendarValues
                 .Include(c => c.Calendar)
                 .Where(cv => cv.CalendarId == createCalendarValueForm.CalendarId)
                 .Where(cv => cv.Calendar.UserId == user!.Id)
-                .Count();
+                .CountAsync();
 
             var newCalendarValue = new CalendarValueModel
             {
@@ -72,7 +72,7 @@ namespace WinterWay.Controllers
             };
 
             _db.CalendarValues.Add(newCalendarValue);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(newCalendarValue);
         }
 
@@ -81,11 +81,11 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetCalendarValue = _db.CalendarValues
+            var targetCalendarValue = await _db.CalendarValues
                 .Include(cv => cv.Calendar)
                 .Where(cv => cv.Id == editCalendarValueForm.CalendarValueId)
                 .Where(cv => cv.Calendar.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetCalendarValue == null)
             {
@@ -94,7 +94,7 @@ namespace WinterWay.Controllers
 
             targetCalendarValue.Name = editCalendarValueForm.Name;
             targetCalendarValue.Color = editCalendarValueForm.Color;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return Ok(targetCalendarValue);
         }
@@ -104,12 +104,12 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var calendarValues = _db.CalendarValues
+            var calendarValues = await _db.CalendarValues
                 .Include(cv => cv.Calendar)
                 .Where(cv => changeCalendarValuesOrderForm.Elements.Contains(cv.Id))
                 .OrderBy(cv => changeCalendarValuesOrderForm.Elements.IndexOf(cv.Id))
                 .Where(cv => cv.Calendar.UserId == user!.Id)
-                .ToList();
+                .ToListAsync();
 
             var allCalendarValuesBelongToOneStatus = calendarValues.All(s => !s.Archived);
 
@@ -124,7 +124,7 @@ namespace WinterWay.Controllers
                 calendarValue.SortOrder = num;
                 num++;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return Ok(calendarValues);
         }
@@ -134,19 +134,19 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetCalendarValue = _db.CalendarValues
+            var targetCalendarValue = await _db.CalendarValues
                 .Include(cv => cv.Calendar)
                 .Include(cv => cv.CalendarRecords)
                 .Where(cv => cv.Id == idForm.Id)
                 .Where(cv => cv.Calendar.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetCalendarValue == null)
             {
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Calendar value does not exists"));
             }
 
-            if (targetCalendarValue.CalendarRecords.Count() > 0)
+            if (targetCalendarValue.CalendarRecords.Any())
             {
                 return BadRequest(new ApiError(InternalError.InvalidForm, "To delete, the value must have no records"));
             }
@@ -154,14 +154,14 @@ namespace WinterWay.Controllers
             var calendarValueArchiveStatus = targetCalendarValue.Archived;
 
             _db.CalendarValues.Remove(targetCalendarValue);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            var otherCalendarValues = _db.CalendarValues
+            var otherCalendarValues = await _db.CalendarValues
                 .Include(cv => cv.Calendar)
                 .Where(cv => cv.Archived == calendarValueArchiveStatus)
                 .Where(cv => cv.Calendar.UserId == user!.Id)
                 .OrderBy(cv => cv.SortOrder)
-                .ToList();
+                .ToListAsync();
 
             var num = 0;
             foreach (var calendarValue in otherCalendarValues)
@@ -169,7 +169,7 @@ namespace WinterWay.Controllers
                 calendarValue.SortOrder = num;
                 num++;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return Ok("Calendar value has been deleted");
         }
@@ -179,34 +179,34 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetCalendarValue = _db.CalendarValues
+            var targetCalendarValue = await _db.CalendarValues
                 .Include(cv => cv.Calendar)
                 .Where(cv => cv.Id == changeArchiveStatusForm.Id)
                 .Where(cv => cv.Archived != changeArchiveStatusForm.Status)
                 .Where(cv => cv.Calendar.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetCalendarValue == null)
             {
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Calendar value does not exists"));
             }
 
-            var allCalendarValuesInNewStatus = _db.CalendarValues
+            var allCalendarValuesInNewStatus = await _db.CalendarValues
                 .Include(cv => cv.Calendar)
                 .Where(cv => cv.Archived == changeArchiveStatusForm.Status)
                 .Where(cv => cv.Calendar.UserId == user!.Id)
-                .Count();
+                .CountAsync();
 
             targetCalendarValue.Archived = changeArchiveStatusForm.Status;
             targetCalendarValue.SortOrder = allCalendarValuesInNewStatus;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            var otherCalendarValuesInOldStatus = _db.CalendarValues
+            var otherCalendarValuesInOldStatus = await _db.CalendarValues
                 .Include(cv => cv.Calendar)
                 .Where(cv => cv.Archived != changeArchiveStatusForm.Status)
                 .Where(cv => cv.Calendar.UserId == user!.Id)
                 .OrderBy(cv => cv.SortOrder)
-                .ToList();
+                .ToListAsync();
 
             var num = 0;
             foreach (var calendarValue in otherCalendarValuesInOldStatus)
@@ -214,7 +214,7 @@ namespace WinterWay.Controllers
                 calendarValue.SortOrder = num;
                 num++;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return Ok(targetCalendarValue);
         }

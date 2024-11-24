@@ -30,10 +30,10 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var countOfAllActiveTimers = _db.Timers
+            var countOfAllActiveTimers = await _db.Timers
                 .Where(t => !t.Archived)
                 .Where(t => t.UserId == user!.Id)
-                .Count();
+                .CountAsync();
 
             var currentDate = DateTime.UtcNow;
 
@@ -49,9 +49,9 @@ namespace WinterWay.Controllers
             };
 
             _db.Timers.Add(newTimer);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            _timerService.StartTimer(newTimer);
+            await _timerService.StartTimer(newTimer);
 
             return Ok(newTimer);
         }
@@ -61,11 +61,11 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTimer = _db.Timers
+            var targetTimer = await _db.Timers
                 .Include(t => t.TimerSessions)
                 .Where(t => t.Id == editTimerForm.TimerId)
                 .Where(t => t.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTimer == null)
             {
@@ -75,7 +75,7 @@ namespace WinterWay.Controllers
             targetTimer.Name = editTimerForm.Name;
             targetTimer.Color = editTimerForm.Color;
             targetTimer.NotificationActive = editTimerForm.NotificationActive;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(targetTimer);
         }
 
@@ -84,10 +84,10 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTimer = _db.Timers
+            var targetTimer = await _db.Timers
                 .Where(t => t.Id == idForm.Id)
                 .Where(t => t.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTimer == null)
             {
@@ -95,7 +95,7 @@ namespace WinterWay.Controllers
             }
 
             _db.Timers.Remove(targetTimer);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok("Timer has been removed");
         }
 
@@ -104,17 +104,17 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTimer = _db.Timers
+            var targetTimer = await _db.Timers
                 .Where(t => t.Id == idForm.Id)
                 .Where(t => t.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTimer == null)
             {
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Timer does not exists"));
             }
 
-            _timerService.StopTimer(targetTimer);
+            await _timerService.StopTimer(targetTimer);
 
             return Ok(targetTimer);
         }
@@ -124,19 +124,19 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTimer = _db.Timers
+            var targetTimer = await _db.Timers
                 .Where(t => t.Id == idForm.Id)
                 .Where(t => !t.Archived)
                 .Where(t => t.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTimer == null)
             {
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Timer does not exists"));
             }
 
-            _timerService.StopTimer(targetTimer);
-            var newTimerSession = _timerService.StartTimer(targetTimer);
+            await _timerService.StopTimer(targetTimer);
+            var newTimerSession = await _timerService.StartTimer(targetTimer);
             return Ok(newTimerSession);
         }
 
@@ -145,10 +145,10 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTimer = _db.Timers
+            var targetTimer = await _db.Timers
                 .Where(t => t.Id == changeArchiveStatusForm.Id)
                 .Where(t => t.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTimer == null)
             {
@@ -162,23 +162,23 @@ namespace WinterWay.Controllers
 
             if (changeArchiveStatusForm.Status)
             {
-                _timerService.StopTimer(targetTimer);
+                await _timerService.StopTimer(targetTimer);
             }
 
-            var countOfTimersInNewStatus = _db.Timers
+            var countOfTimersInNewStatus = await _db.Timers
                 .Where(t => t.Archived == changeArchiveStatusForm.Status)
                 .Where(t => t.UserId == user!.Id)
-                .Count();
+                .CountAsync();
 
             targetTimer.Archived = changeArchiveStatusForm.Status;
             targetTimer.SortOrder = countOfTimersInNewStatus;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            var otherTimersInOldStatus = _db.Timers
+            var otherTimersInOldStatus = await _db.Timers
                 .Where(t => t.Archived == !changeArchiveStatusForm.Status)
                 .Where(t => t.UserId == user!.Id)
                 .OrderBy(t => t.SortOrder)
-                .ToList();
+                .ToListAsync();
 
             var num = 0;
             foreach (var timer in otherTimersInOldStatus)
@@ -186,7 +186,7 @@ namespace WinterWay.Controllers
                 timer.SortOrder = num;
                 num++;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return Ok(targetTimer);
         }
@@ -196,11 +196,11 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var timers = _db.Timers
+            var timers = await _db.Timers
                 .Where(t => changeTimersOrderForm.Elements.Contains(t.Id))
                 .OrderBy(t => changeTimersOrderForm.Elements.IndexOf(t.Id))
                 .Where(t => t.UserId == user!.Id)
-                .ToList();
+                .ToListAsync();
 
             var allTimersBelongToOneStatus = timers.All(s => !s.Archived);
 
@@ -215,7 +215,7 @@ namespace WinterWay.Controllers
                 timer.SortOrder = num;
                 num++;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return Ok(timers);
         }
@@ -225,10 +225,10 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var timers = _db.Timers
+            var timers = await _db.Timers
                 .Include(t => t.TimerSessions)
                 .Where(t => t.UserId == user!.Id)
-                .ToList();
+                .ToListAsync();
 
             return Ok(timers);
         }

@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.Eventing.Reader;
-using System.Globalization;
 using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database;
@@ -18,19 +16,19 @@ namespace WinterWay.Services
             _notificationService = notificationService;
         }
 
-        public TaskModel ChangeStatus(TaskModel targetTask, bool status)
+        public async Task<TaskModel> ChangeStatus(TaskModel targetTask, bool status)
         {
             if (targetTask.IsDone == status)
             {
                 return targetTask;
             }
 
-            var tasksInSprintInStatusCount = _db.Tasks
+            var tasksInSprintInStatusCount = await _db.Tasks
                 .Include(t => t.Board)
                 .Where(t => t.IsDone == status)
                 .Where(t => t.SprintId == targetTask.SprintId)
                 .Where(t => t.Board.UserId == targetTask.Board.UserId)
-                .Count();
+                .CountAsync();
 
             if (status)
             {
@@ -45,7 +43,7 @@ namespace WinterWay.Services
                 targetTask.ClosingDate = null;
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return targetTask;
         }
 
@@ -66,14 +64,14 @@ namespace WinterWay.Services
 
             if (needsToBeClosed && !targetTask.IsDone)
             {
-                ChangeStatus(targetTask, true);
+                await ChangeStatus(targetTask, true);
                 await _notificationService.CreateNotification(NotificationType.TaskCounterReachedMaxValue, targetTask.Id, userId);
             }
 
             return targetTask;
         }
 
-        public List<TaskModel> SortAllTasks(List<TaskModel> tasks)
+        public async Task<List<TaskModel>> SortAllTasks(List<TaskModel> tasks)
         {
             tasks = tasks
                 .OrderBy(t => t.SortOrder)
@@ -86,7 +84,7 @@ namespace WinterWay.Services
                 num++;
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return tasks;
         }

@@ -63,8 +63,8 @@ namespace WinterWay.Controllers
 
             if (_rateLimiterService.IsRequestAvailableAgain(user!.Id, requestTypeCalculate, blockPeriod))
             {
-                var newNotifications = await _notificationService.Calculate(user!.Id);
-                _rateLimiterService.SetLastRequestTime(user!.Id, requestTypeCalculate);
+                var newNotifications = await _notificationService.Calculate(user.Id);
+                _rateLimiterService.SetLastRequestTime(user.Id, requestTypeCalculate);
                 return Ok(newNotifications);
             }
 
@@ -76,17 +76,17 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             
-            var targetNotifications = _db.Notifications
+            var targetNotifications = await _db.Notifications
                 .Where(n => changeNotificationStatusForm.Notifications.Contains(n.Id))
                 .Where(n => n.UserId == user!.Id)
-                .ToList();
+                .ToListAsync();
 
             foreach (var notification in targetNotifications)
             {
                 notification.IsRead = true;
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             
             return Ok(targetNotifications);
         }
@@ -96,17 +96,17 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             
-            var targetNotifications = _db.Notifications
+            var targetNotifications = await _db.Notifications
                 .Where(n => changeNotificationStatusForm.Notifications.Contains(n.Id))
                 .Where(n => n.UserId == user!.Id)
-                .ToList();
+                .ToListAsync();
 
             foreach (var notification in targetNotifications)
             {
                 notification.Archived = true;
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             
             return Ok(targetNotifications);
         }

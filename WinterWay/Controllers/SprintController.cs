@@ -34,13 +34,13 @@ namespace WinterWay.Controllers
                 .Include(u => u.Boards)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
-            var targetSprint = _db.Sprints
+            var targetSprint = await _db.Sprints
                 .Include(s => s.Board)
                 .Where(s => s.Id == editSprintForm.Id)
                 .Where(s => s.Board.UserId == user!.Id)
                 .Where(s => !s.Board.IsBacklog)
                 .Where(s => s.Active)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetSprint == null)
             {
@@ -48,7 +48,7 @@ namespace WinterWay.Controllers
             }
 
             targetSprint.Name = editSprintForm.Name;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(targetSprint);
         }
 
@@ -61,13 +61,13 @@ namespace WinterWay.Controllers
                 .Include(u => u.Boards)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
-            var targetSprint = _db.Sprints
+            var targetSprint = await _db.Sprints
                 .Include(s => s.Board)
                 .Where(s => s.Id == idForm.Id)
                 .Where(s => s.Board.UserId == user!.Id)
                 .Where(s => !s.Board.IsBacklog)
                 .Where(s => s.Active)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetSprint == null)
             {
@@ -82,7 +82,7 @@ namespace WinterWay.Controllers
 
             int newImageNum = _rollService.SelectImageForSprint(rollType, targetSprint.CreationDate, targetSprint.Image);
             targetSprint.Image = newImageNum;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(targetSprint);
         }
 
@@ -95,13 +95,13 @@ namespace WinterWay.Controllers
                 .Include(u => u.Boards)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
-            var targetSprint = _db.Sprints
+            var targetSprint = await _db.Sprints
                 .Include(s => s.Board)
                 .Where(s => s.Id == idForm.Id)
                 .Where(s => s.Board.UserId == user!.Id)
                 .Where(s => !s.Board.IsBacklog)
                 .Where(s => !s.Active)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetSprint == null)
             {
@@ -109,7 +109,7 @@ namespace WinterWay.Controllers
             }
 
             _db.Sprints.Remove(targetSprint);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok("Sprint has been removed");
         }
 
@@ -122,14 +122,14 @@ namespace WinterWay.Controllers
                 .Include(u => u.Boards)
                 .FirstOrDefaultAsync(u => u.Id == user!.Id);
 
-            var targetSprint = _db.Sprints
+            var targetSprint = await _db.Sprints
                 .Include(s => s.Board)
                 .Include(s => s.SprintResult)
                 .Where(s => s.Id == idForm.Id)
                 .Where(s => s.Board.UserId == user!.Id)
                 .Where(s => !s.Active)
                 .Include(s => s.Tasks)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetSprint == null)
             {

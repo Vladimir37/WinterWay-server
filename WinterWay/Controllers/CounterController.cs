@@ -30,22 +30,22 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTask = _db.Tasks
+            var targetTask = await _db.Tasks
                 .Include(t => t.Board)
                 .Include(t => t.Subtasks)
                 .Where(t => t.Id == createSubtaskForm.TaskId)
                 .Where(t => t.Type == TaskType.TodoList)
                 .Where(t => t.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTask == null)
             {
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
             }
 
-            var countOfSubtasks = _db.Subtasks
+            var countOfSubtasks = await _db.Subtasks
                 .Where(s => s.TaskId == targetTask.Id)
-                .Count();
+                .CountAsync();
 
             var newSubtask = new SubtaskModel
             {
@@ -56,7 +56,7 @@ namespace WinterWay.Controllers
             };
 
             _db.Subtasks.Add(newSubtask);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(targetTask);
         }
 
@@ -65,14 +65,14 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetSubtask = _db.Subtasks
+            var targetSubtask = await _db.Subtasks
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Board)
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Subtasks)
                 .Where(s => s.Id == editSubtaskForm.SubtaskId)
                 .Where(s => s.Task.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetSubtask == null)
             {
@@ -80,7 +80,7 @@ namespace WinterWay.Controllers
             }
 
             targetSubtask.Text = editSubtaskForm.Text;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(targetSubtask.Task);
         }
 
@@ -89,7 +89,7 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetSubtask = _db.Subtasks
+            var targetSubtask = await _db.Subtasks
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Board)
                 .Include(s => s.Task)
@@ -99,7 +99,7 @@ namespace WinterWay.Controllers
                 .Where(s => !s.Task.IsTemplate)
                 .Where(s => !s.Task.Board.IsBacklog)
                 .Where(s => s.Task.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetSubtask == null)
             {
@@ -107,7 +107,7 @@ namespace WinterWay.Controllers
             }
 
             targetSubtask.IsDone = changeStatusForm.Status;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             if (changeStatusForm.Status)
             {
@@ -123,13 +123,13 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var subtasks = _db.Subtasks
+            var subtasks = await _db.Subtasks
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Board)
                 .Where(s => changeOrderForm.Elements.Contains(s.Id))
                 .Where(s => s.Task.Board.UserId == user!.Id)
                 .OrderBy(s => changeOrderForm.Elements.IndexOf(s.Id))
-                .ToList();
+                .ToListAsync();
 
             bool allSubtasksBelongToOneTask = subtasks.All(s => s.TaskId == subtasks.First().TaskId);
 
@@ -144,7 +144,7 @@ namespace WinterWay.Controllers
                 subtask.SortOrder = num;
                 num++;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(subtasks);
         }
 
@@ -153,14 +153,14 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetSubtask = _db.Subtasks
+            var targetSubtask = await _db.Subtasks
                 .Include(s => s.Task)
                 .ThenInclude (t => t.Board)
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Subtasks)
                 .Where(s => s.Id == idForm.Id)
                 .Where(s => s.Task.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetSubtask == null)
             {
@@ -169,12 +169,12 @@ namespace WinterWay.Controllers
 
             _db.Subtasks.Remove(targetSubtask);
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             
-            var allOtherSubtasks = _db.Subtasks
+            var allOtherSubtasks = await _db.Subtasks
                 .Where(s => s.TaskId == targetSubtask.TaskId)
                 .OrderBy(s => s.SortOrder)
-                .ToList();
+                .ToListAsync();
 
             var num = 0;
             foreach (var subtask in allOtherSubtasks)
@@ -183,7 +183,7 @@ namespace WinterWay.Controllers
                 num++;
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(targetSubtask.Task);
         }
 
@@ -192,7 +192,7 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTask = _db.Tasks
+            var targetTask = await _db.Tasks
                 .Include(t => t.Board)
                 .Include(t => t.TextCounters)
                 .Where(t => t.Id == createTextCounterForm.TaskId)
@@ -201,16 +201,16 @@ namespace WinterWay.Controllers
                 .Where(t => t.SprintId != null)
                 .Where(t => !t.Board.IsBacklog)
                 .Where(t => t.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTask == null)
             {
                 return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
             }
 
-            var countOfTextCounters = _db.TextCounters
+            var countOfTextCounters = await _db.TextCounters
                 .Where(s => s.TaskId == targetTask.Id)
-                .Count();
+                .CountAsync();
 
             var newTextCounter = new TextCounterModel
             {
@@ -220,7 +220,7 @@ namespace WinterWay.Controllers
             };
 
             _db.TextCounters.Add(newTextCounter);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             var finalTask = await _completeTaskService.CheckAutocompleteStatus(targetTask, user!.Id);
 
@@ -232,14 +232,14 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTextCounter = _db.TextCounters
+            var targetTextCounter = await _db.TextCounters
                 .Include(t => t.Task)
                 .ThenInclude(t => t.Board)
                 .Include(t => t.Task)
                 .ThenInclude(t => t.TextCounters)
                 .Where(t => t.Id == editTextCounterForm.SubtaskId)
                 .Where(t => t.Task.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTextCounter == null)
             {
@@ -247,7 +247,7 @@ namespace WinterWay.Controllers
             }
 
             targetTextCounter.Text = editTextCounterForm.Text;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return Ok(targetTextCounter);
         }
@@ -257,7 +257,7 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var textCounters = _db.TextCounters
+            var textCounters = await _db.TextCounters
                 .Include(t => t.Task)
                 .ThenInclude(t => t.Board)
                 .Include(t => t.Task)
@@ -265,7 +265,7 @@ namespace WinterWay.Controllers
                 .Where(t => changeOrderForm.Elements.Contains(t.Id))
                 .Where(t => t.Task.Board.UserId == user!.Id)
                 .OrderBy(t => changeOrderForm.Elements.IndexOf(t.Id))
-                .ToList(); 
+                .ToListAsync(); 
 
             bool allTextCountersBelongToOneTask = textCounters.All(s => s.TaskId == textCounters.First().TaskId);
 
@@ -280,7 +280,7 @@ namespace WinterWay.Controllers
                 textCounter.SortOrder = num;
                 num++;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(textCounters);
         }
 
@@ -289,14 +289,14 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetTextCounter = _db.TextCounters
+            var targetTextCounter = await _db.TextCounters
                 .Include(t => t.Task)
                 .ThenInclude(t => t.Board)
                 .Include(t => t.Task)
                 .ThenInclude(t => t.TextCounters)
                 .Where(t => t.Id == idForm.Id)
                 .Where(t => t.Task.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetTextCounter == null)
             {
@@ -304,12 +304,12 @@ namespace WinterWay.Controllers
             }
 
             _db.TextCounters.Remove(targetTextCounter);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            var allOtherTextCounters = _db.TextCounters
+            var allOtherTextCounters = await _db.TextCounters
                 .Where(t => t.TaskId == targetTextCounter.TaskId)
                 .OrderBy(t => t.SortOrder)
-                .ToList();
+                .ToListAsync();
 
             var num = 0;
             foreach (var textCounter in allOtherTextCounters)
@@ -317,7 +317,7 @@ namespace WinterWay.Controllers
                 textCounter.SortOrder = num;
                 num++;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(targetTextCounter.Task);
         }
 
@@ -326,12 +326,12 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetNumericCounter = _db.NumericCounters
+            var targetNumericCounter = await _db.NumericCounters
                 .Include(s => s.Task)
                 .ThenInclude (t => t.Board)
                 .Where(n => n.Id == editNumericCounterForm.NumericCounterId)
                 .Where(n => n.Task.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetNumericCounter == null)
             {
@@ -339,7 +339,7 @@ namespace WinterWay.Controllers
             }
 
             targetNumericCounter.Name = editNumericCounterForm.Name;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok(targetNumericCounter.Task);
         }
 
@@ -348,7 +348,7 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var targetNumericCounter = _db.NumericCounters
+            var targetNumericCounter = await _db.NumericCounters
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Board)
                 .Where(n => n.Id == changeNumericCounterValueForm.NumericCounterId)
@@ -356,7 +356,7 @@ namespace WinterWay.Controllers
                 .Where(n => n.Task.SprintId != null)
                 .Where(n => !n.Task.Board.IsBacklog)
                 .Where(n => n.Task.Board.UserId == user!.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (targetNumericCounter == null)
             {
@@ -364,7 +364,7 @@ namespace WinterWay.Controllers
             }
 
             targetNumericCounter.Value = changeNumericCounterValueForm.Value;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             var finalTask = await _completeTaskService.CheckAutocompleteStatus(targetNumericCounter.Task, user!.Id);
             return Ok(finalTask);
         }

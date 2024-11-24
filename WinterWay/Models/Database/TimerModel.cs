@@ -1,4 +1,6 @@
-﻿namespace WinterWay.Models.Database
+﻿using System.Text.Json.Serialization;
+
+namespace WinterWay.Models.Database
 {
     public class TimerModel
     {
@@ -11,6 +13,7 @@
         public DateTime CreationDate { get; set; }
 
         public string UserId { get; set; }
+        [JsonIgnore]
         public UserModel User { get; set; }
         public List<TimerSessionModel> TimerSessions { get; set; } = new List<TimerSessionModel>();
     }

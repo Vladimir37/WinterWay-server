@@ -45,11 +45,14 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<ValidateModelFilter>();
 });
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddScoped<RollService>();
 builder.Services.AddScoped<CompleteTaskService>();
 builder.Services.AddScoped<CalendarService>();
 builder.Services.AddScoped<TimerService>();
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddSingleton<RateLimiterService>();
 
 var app = builder.Build();
 

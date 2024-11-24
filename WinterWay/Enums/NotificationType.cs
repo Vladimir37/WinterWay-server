@@ -8,6 +8,6 @@
         DayOnTimer,
         WeekOnTimer,
         MonthOnTimer,
-        YearOnTimer,
+        YearOnTimer
     }
 }

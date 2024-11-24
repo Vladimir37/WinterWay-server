@@ -1,4 +1,5 @@
-﻿using WinterWay.Enums;
+﻿using System.Text.Json.Serialization;
+using WinterWay.Enums;
 
 namespace WinterWay.Models.Database
 {
@@ -14,6 +15,7 @@ namespace WinterWay.Models.Database
         public DateTime CreationDate { get; set; }
 
         public string UserId { get; set; }
+        [JsonIgnore]
         public UserModel User { get; set; }
     }
 }

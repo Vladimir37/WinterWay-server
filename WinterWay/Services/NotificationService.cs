@@ -38,7 +38,7 @@ namespace WinterWay.Services
                 .Include(s => s.Board)
                 .Where(s => s.Board.UserId == userId)
                 .Where(s => s.Active)
-                .Where(s => s.ExpirationDate > DateTime.UtcNow)
+                .Where(s => s.ExpirationDate < DateTime.UtcNow)
                 .Where(s => !allUserNotification
                     .Select(n => n.EntityId)
                     .Contains(s.Id)
@@ -77,18 +77,16 @@ namespace WinterWay.Services
             var targetCalendars = await _db.Calendars
                 .Where(c => c.UserId == userId)
                 .Where(c => !c.Archived)
-                .Where(c => !allTodayRecords
-                    .Where(cr => cr.CalendarId == c.Id)
-                    .Any()
-                )
-                .Where(c => !allUserNotification
-                    .Where(n => n.EntityId == c.Id)
-                    .Where(n => DateOnly.FromDateTime(n.CreationDate) == today)
-                    .Any()
-                )
                 .ToListAsync();
             
-            foreach (var calendar in targetCalendars)
+            var filteredCalendars = targetCalendars
+                .Where(c => allTodayRecords.All(cr => cr.CalendarId != c.Id))
+                .Where(c => !allUserNotification
+                    .Any(n => n.EntityId == c.Id && DateOnly.FromDateTime(n.CreationDate) == today)
+                )
+                .ToList(); 
+            
+            foreach (var calendar in filteredCalendars)
             {
                 var newNotification = await CreateNotification(NotificationType.CalendarRecordForToday, calendar.Id, userId);
                 if (newNotification != null)
@@ -128,7 +126,7 @@ namespace WinterWay.Services
                 
                 if (targetNotificationType != null && !notificationAlreadyExists)
                 {
-                    var newNotification = await CreateNotification(NotificationType.CalendarRecordForToday, timerSession.TimerId, userId);
+                    var newNotification = await CreateNotification(targetNotificationType.Value, timerSession.TimerId, userId);
                     if (newNotification != null)
                     {
                         newNotifications.Add(newNotification);
@@ -170,7 +168,7 @@ namespace WinterWay.Services
         {
             DateTime now = DateTime.UtcNow;
             TimeSpan difference = now - date;
-
+            
             return difference.TotalDays switch
             {
                 >= 365 => NotificationType.YearOnTimer,

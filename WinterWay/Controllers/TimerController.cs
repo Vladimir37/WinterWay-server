@@ -62,6 +62,7 @@ namespace WinterWay.Controllers
             var user = await _userManager.GetUserAsync(User);
 
             var targetTimer = _db.Timers
+                .Include(t => t.TimerSessions)
                 .Where(t => t.Id == editTimerForm.TimerId)
                 .Where(t => t.UserId == user!.Id)
                 .FirstOrDefault();

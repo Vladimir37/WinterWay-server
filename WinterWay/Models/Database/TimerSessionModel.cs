@@ -1,4 +1,6 @@
-﻿namespace WinterWay.Models.Database
+﻿using System.Text.Json.Serialization;
+
+namespace WinterWay.Models.Database
 {
     public class TimerSessionModel
     {
@@ -8,6 +10,7 @@
         public bool Active { get; set; }
 
         public int TimerId { get; set; }
+        [JsonIgnore]
         public TimerModel Timer { get; set; }
     }
 }

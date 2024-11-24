@@ -8,17 +8,21 @@ using WinterWay.Services;
 
 namespace WinterWay.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class NotificationController : ControllerBase
     {
         private readonly ApplicationContext _db;
         private readonly UserManager<UserModel> _userManager;
         private readonly NotificationService _notificationService;
+        private readonly RateLimiterService _rateLimiterService;
 
-        public NotificationController(ApplicationContext db, UserManager<UserModel> userManager, NotificationService notificationService)
+        public NotificationController(ApplicationContext db, UserManager<UserModel> userManager, NotificationService notificationService, RateLimiterService rateLimiterService)
         {
             _db = db;
             _userManager = userManager;
             _notificationService = notificationService;
+            _rateLimiterService = rateLimiterService;
         }
 
         [HttpGet("get-all")]
@@ -54,8 +58,17 @@ namespace WinterWay.Controllers
         public async Task<IActionResult> Calculate()
         {
             var user = await _userManager.GetUserAsync(User);
-            
-            //
+            var requestTypeCalculate = "calculateNotifications";
+            var blockPeriod = new TimeSpan(0, 30, 0);
+
+            if (_rateLimiterService.IsRequestAvailableAgain(user!.Id, requestTypeCalculate, blockPeriod))
+            {
+                var newNotifications = await _notificationService.Calculate(user!.Id);
+                _rateLimiterService.SetLastRequestTime(user!.Id, requestTypeCalculate);
+                return Ok(newNotifications);
+            }
+
+            return Ok(new List<NotificationModel>());
         }
 
         [HttpPost("read")]

@@ -57,6 +57,7 @@ namespace WinterWay.Services
                 {
                     TaskType.TodoList => targetTask.Subtasks.All(s => s.IsDone),
                     TaskType.TextCounter => (targetTask.TextCounters.Count() >= targetTask.MaxCounter) && targetTask.MaxCounter > 0,
+                    TaskType.SumCounter => (targetTask.SumCounters.Sum(sc => sc.Sum) >= targetTask.MaxCounter) && targetTask.MaxCounter > 0,
                     TaskType.NumericCounter => (targetTask.NumericCounter!.Value >= targetTask.MaxCounter) && targetTask.MaxCounter > 0,
                     _ => false,
                 };

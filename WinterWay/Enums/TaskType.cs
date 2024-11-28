@@ -5,6 +5,7 @@
         Default,
         TodoList,
         NumericCounter,
-        TextCounter
+        TextCounter,
+        SumCounter
     }
 }

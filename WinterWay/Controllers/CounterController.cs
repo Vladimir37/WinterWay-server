@@ -71,6 +71,7 @@ namespace WinterWay.Controllers
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Subtasks)
                 .Where(s => s.Id == editSubtaskForm.SubtaskId)
+                .Where(s => s.Task.Type == TaskType.TodoList)
                 .Where(s => s.Task.Board.UserId == user!.Id)
                 .FirstOrDefaultAsync();
 
@@ -98,6 +99,7 @@ namespace WinterWay.Controllers
                 .Where(s => s.Task.SprintId != null)
                 .Where(s => !s.Task.IsTemplate)
                 .Where(s => !s.Task.Board.IsBacklog)
+                .Where(s => s.Task.Type == TaskType.TodoList)
                 .Where(s => s.Task.Board.UserId == user!.Id)
                 .FirstOrDefaultAsync();
 
@@ -123,7 +125,7 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var subtasks = await _db.Subtasks
+            var targetSubtasks = await _db.Subtasks
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Board)
                 .Where(s => changeOrderForm.Elements.Contains(s.Id))
@@ -131,7 +133,7 @@ namespace WinterWay.Controllers
                 .OrderBy(s => changeOrderForm.Elements.IndexOf(s.Id))
                 .ToListAsync();
 
-            bool allSubtasksBelongToOneTask = subtasks.All(s => s.TaskId == subtasks.First().TaskId);
+            bool allSubtasksBelongToOneTask = targetSubtasks.All(s => s.TaskId == targetSubtasks.First().TaskId);
 
             if (!allSubtasksBelongToOneTask)
             {
@@ -139,13 +141,13 @@ namespace WinterWay.Controllers
             }
 
             var num = 0;
-            foreach (var subtask in subtasks)
+            foreach (var subtask in targetSubtasks)
             {
                 subtask.SortOrder = num;
                 num++;
             }
             await _db.SaveChangesAsync();
-            return Ok(subtasks);
+            return Ok(targetSubtasks);
         }
 
         [HttpPost("remove-subtask")]
@@ -159,6 +161,7 @@ namespace WinterWay.Controllers
                 .Include(s => s.Task)
                 .ThenInclude(t => t.Subtasks)
                 .Where(s => s.Id == idForm.Id)
+                .Where(s => s.Task.Type == TaskType.TodoList)
                 .Where(s => s.Task.Board.UserId == user!.Id)
                 .FirstOrDefaultAsync();
 
@@ -238,6 +241,7 @@ namespace WinterWay.Controllers
                 .Include(t => t.Task)
                 .ThenInclude(t => t.TextCounters)
                 .Where(t => t.Id == editTextCounterForm.SubtaskId)
+                .Where(t => t.Task.Type == TaskType.TextCounter)
                 .Where(t => t.Task.Board.UserId == user!.Id)
                 .FirstOrDefaultAsync();
 
@@ -249,7 +253,7 @@ namespace WinterWay.Controllers
             targetTextCounter.Text = editTextCounterForm.Text;
             await _db.SaveChangesAsync();
 
-            return Ok(targetTextCounter);
+            return Ok(targetTextCounter.Task);
         }
 
         [HttpPost("change-text-counters-order")]
@@ -257,7 +261,7 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var textCounters = await _db.TextCounters
+            var targetTextCounters = await _db.TextCounters
                 .Include(t => t.Task)
                 .ThenInclude(t => t.Board)
                 .Include(t => t.Task)
@@ -267,7 +271,7 @@ namespace WinterWay.Controllers
                 .OrderBy(t => changeOrderForm.Elements.IndexOf(t.Id))
                 .ToListAsync(); 
 
-            bool allTextCountersBelongToOneTask = textCounters.All(s => s.TaskId == textCounters.First().TaskId);
+            bool allTextCountersBelongToOneTask = targetTextCounters.All(s => s.TaskId == targetTextCounters.First().TaskId);
 
             if (!allTextCountersBelongToOneTask)
             {
@@ -275,13 +279,13 @@ namespace WinterWay.Controllers
             }
 
             var num = 0;
-            foreach (var textCounter in textCounters)
+            foreach (var textCounter in targetTextCounters)
             {
                 textCounter.SortOrder = num;
                 num++;
             }
             await _db.SaveChangesAsync();
-            return Ok(textCounters);
+            return Ok(targetTextCounters);
         }
 
         [HttpPost("remove-text-counter")]
@@ -295,6 +299,7 @@ namespace WinterWay.Controllers
                 .Include(t => t.Task)
                 .ThenInclude(t => t.TextCounters)
                 .Where(t => t.Id == idForm.Id)
+                .Where(t => t.Task.Type == TaskType.TextCounter)
                 .Where(t => t.Task.Board.UserId == user!.Id)
                 .FirstOrDefaultAsync();
 
@@ -321,6 +326,144 @@ namespace WinterWay.Controllers
             return Ok(targetTextCounter.Task);
         }
 
+        [HttpPost("create-sum-counter")]
+        public async Task<IActionResult> CreateSumCounter([FromBody] CreateSumCounterDTO createSumCounterForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            
+            var targetTask = await _db.Tasks
+                .Include(t => t.Board)
+                .Include(t => t.SumCounters)
+                .Where(t => t.Id == createSumCounterForm.TaskId)
+                .Where(t => t.Type == TaskType.SumCounter)
+                .Where(t => !t.IsTemplate)
+                .Where(t => t.SprintId != null)
+                .Where(t => !t.Board.IsBacklog)
+                .Where(t => t.Board.UserId == user!.Id)
+                .FirstOrDefaultAsync();
+
+            if (targetTask == null)
+            {
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
+            }
+
+            var countOfSumCounters = await _db.SumCounters
+                .Where(s => s.TaskId == targetTask.Id)
+                .CountAsync();
+
+            var newSumCounter = new SumCounterModel
+            {
+                Text = createSumCounterForm.Text,
+                Sum = createSumCounterForm.Sum,
+                SortOrder = countOfSumCounters,
+                Task = targetTask
+            };
+
+            _db.SumCounters.Add(newSumCounter);
+            await _db.SaveChangesAsync();
+
+            var finalTask = await _completeTaskService.CheckAutocompleteStatus(targetTask, user!.Id);
+
+            return Ok(finalTask);
+        }
+
+        [HttpPost("edit-sum-counter")]
+        public async Task<IActionResult> EditSumCounter([FromBody] EditSumCounterDTO editSumCounterForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            
+            var targetSumCounter = await _db.SumCounters
+                .Include(t => t.Task)
+                .ThenInclude(t => t.Board)
+                .Include(t => t.Task)
+                .ThenInclude(t => t.SumCounters)
+                .Where(sc => sc.Id == editSumCounterForm.SubtaskId)
+                .Where(sc => sc.Task.Type == TaskType.SumCounter)
+                .Where(sc => sc.Task.Board.UserId == user!.Id)
+                .FirstOrDefaultAsync();
+
+            if (targetSumCounter == null)
+            {
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Sum counter does not exists"));
+            }
+
+            targetSumCounter.Text = editSumCounterForm.Text;
+            targetSumCounter.Sum = editSumCounterForm.Sum;
+            await _db.SaveChangesAsync();
+
+            return Ok(targetSumCounter.Task);
+        }
+        
+        [HttpPost("change-sum-counters-order")]
+        public async Task<IActionResult> ChangeSumCountersOrder([FromBody] ChangeElementsOrderDTO changeOrderForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var targetSumCounters = await _db.SumCounters
+                .Include(t => t.Task)
+                .ThenInclude(t => t.Board)
+                .Include(t => t.Task)
+                .ThenInclude(t => t.SumCounters)
+                .Where(t => changeOrderForm.Elements.Contains(t.Id))
+                .Where(t => t.Task.Board.UserId == user!.Id)
+                .OrderBy(t => changeOrderForm.Elements.IndexOf(t.Id))
+                .ToListAsync(); 
+
+            bool allTextCountersBelongToOneTask = targetSumCounters.All(s => s.TaskId == targetSumCounters.First().TaskId);
+
+            if (!allTextCountersBelongToOneTask)
+            {
+                return BadRequest(new ApiError(InternalError.InvalidForm, "Sum counters belong to different tasks"));
+            }
+
+            var num = 0;
+            foreach (var sumCounter in targetSumCounters)
+            {
+                sumCounter.SortOrder = num;
+                num++;
+            }
+            await _db.SaveChangesAsync();
+            return Ok(targetSumCounters);
+        }
+        
+        [HttpPost("remove-sum-counter")]
+        public async Task<IActionResult> RemoveSumCounter([FromBody] IdDTO idForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var targetSumCounter = await _db.SumCounters
+                .Include(t => t.Task)
+                .ThenInclude(t => t.Board)
+                .Include(t => t.Task)
+                .ThenInclude(t => t.SumCounters)
+                .Where(t => t.Id == idForm.Id)
+                .Where(t => t.Task.Type == TaskType.SumCounter)
+                .Where(t => t.Task.Board.UserId == user!.Id)
+                .FirstOrDefaultAsync();
+
+            if (targetSumCounter == null)
+            {
+                return BadRequest(new ApiError(InternalError.ElementNotFound, "Sum counter does not exists"));
+            }
+
+            _db.SumCounters.Remove(targetSumCounter);
+            await _db.SaveChangesAsync();
+
+            var allOtherSumCounters = await _db.TextCounters
+                .Where(t => t.TaskId == targetSumCounter.TaskId)
+                .OrderBy(t => t.SortOrder)
+                .ToListAsync();
+
+            var num = 0;
+            foreach (var sumCounter in allOtherSumCounters)
+            {
+                sumCounter.SortOrder = num;
+                num++;
+            }
+            await _db.SaveChangesAsync();
+            return Ok(targetSumCounter.Task);
+        }
+
         [HttpPost("edit-numeric-counter")]
         public async Task<IActionResult> EditNumericCounter([FromBody] EditNumericCounterDTO editNumericCounterForm)
         {
@@ -330,6 +473,7 @@ namespace WinterWay.Controllers
                 .Include(s => s.Task)
                 .ThenInclude (t => t.Board)
                 .Where(n => n.Id == editNumericCounterForm.NumericCounterId)
+                .Where(n => n.Task.Type == TaskType.NumericCounter)
                 .Where(n => n.Task.Board.UserId == user!.Id)
                 .FirstOrDefaultAsync();
 
@@ -355,6 +499,7 @@ namespace WinterWay.Controllers
                 .Where(n => !n.Task.IsTemplate)
                 .Where(n => n.Task.SprintId != null)
                 .Where(n => !n.Task.Board.IsBacklog)
+                .Where(n => n.Task.Type == TaskType.NumericCounter)
                 .Where(n => n.Task.Board.UserId == user!.Id)
                 .FirstOrDefaultAsync();
 

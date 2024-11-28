@@ -27,6 +27,7 @@ namespace WinterWay.Models.Database
 
         public List<SubtaskModel> Subtasks { get; set; } = new List<SubtaskModel>();
         public List<TextCounterModel> TextCounters { get; set; } = new List<TextCounterModel>();
+        public List<SumCounterModel> SumCounters { get; set; } = new List<SumCounterModel>();
         public NumericCounterModel? NumericCounter { get; set; }
 
         public TaskModel CloneToNewSprint(SprintModel sprint)
@@ -47,7 +48,8 @@ namespace WinterWay.Models.Database
 
                 Subtasks = Subtasks.Select(s => s.CloneToNewTask()).ToList(),
                 TextCounters = TextCounters.Select(t => t.CloneToNewTask()).ToList(),
-                NumericCounter = NumericCounter != null ? NumericCounter.CloneToNewTask() : null,
+                SumCounters = SumCounters.Select(s => s.CloneToNewTask()).ToList(),
+                NumericCounter = NumericCounter?.CloneToNewTask(),
             };
         }
     }

@@ -349,6 +349,7 @@ namespace WinterWay.Controllers
                 .Where(t => t.SprintId == idForm.Id)
                 .Include(t => t.Subtasks)
                 .Include(t => t.TextCounters)
+                .Include(t => t.SumCounters)
                 .Include(t => t.NumericCounter)
                 .ToListAsync();
 
@@ -375,6 +376,7 @@ namespace WinterWay.Controllers
                 .Where(t => t.SprintId == null)
                 .Include(t => t.Subtasks)
                 .Include(t => t.TextCounters)
+                .Include(t => t.SumCounters)
                 .Include(t => t.NumericCounter)
                 .ToListAsync();
 

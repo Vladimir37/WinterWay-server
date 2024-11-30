@@ -26,6 +26,7 @@ namespace WinterWay.Controllers
         private readonly string _version;
         private readonly bool _registrationIsPossible;
         private readonly bool _registrationForOnlyFirst;
+        private readonly bool _importAvailable;
 
         public AuthController(ApplicationContext db, UserManager<UserModel> userManager, SignInManager<UserModel> signInManager, IConfiguration config)
         {
@@ -39,6 +40,7 @@ namespace WinterWay.Controllers
 
             _registrationIsPossible = registrationConfig.GetValue<bool>("Available");
             _registrationForOnlyFirst = registrationConfig.GetValue<bool>("OnlyFirst");
+            _importAvailable = registrationConfig.GetValue<bool>("Import");
             _appName = appSettings.GetValue<string>("Name")!;
             _version = appSettings.GetValue<string>("Version")!;
         }
@@ -203,13 +205,13 @@ namespace WinterWay.Controllers
         {
             if (!_registrationIsPossible)
             {
-                return Ok(new AppStatusDTO(false, false, _appName, _version));
+                return Ok(new AppStatusDTO(false, false, false, _appName, _version));
             }
             else if (_registrationForOnlyFirst)
             {
-                return Ok(new AppStatusDTO(true, !await _userManager.Users.AnyAsync(), _appName, _version));
+                return Ok(new AppStatusDTO(true, !await _userManager.Users.AnyAsync(), _importAvailable, _appName, _version));
             }
-            return Ok(new AppStatusDTO(true, true, _appName, _version));
+            return Ok(new AppStatusDTO(true, true, _importAvailable, _appName, _version));
         }
     }
 }

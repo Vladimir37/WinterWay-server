@@ -8,9 +8,10 @@
         UnsupportedMediaType = 3,
         UsernameAlreadyExists = 4,
         RegistrationIsClosed = 5,
-        InvalidUserData = 6,
-        InvalidForm = 7,
-        ElementNotFound = 8,
-        CannotChangeFixedBackground = 9,
+        ImportIsClosed = 6,
+        InvalidUserData = 7,
+        InvalidForm = 8,
+        ElementNotFound = 9,
+        CannotChangeFixedBackground = 10,
     }
 }

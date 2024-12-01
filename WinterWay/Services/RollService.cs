@@ -9,20 +9,14 @@ namespace WinterWay.Services
     public class RollService
     {
         private readonly ApplicationContext _db;
-        private readonly IConfiguration _config;
+        private readonly BackgroundImageService _backgroundImageService;
         private readonly CultureInfo _culture;
-
-        private readonly int _maxNoneBackgroundNum;
-        private readonly int _maxOtherBackgroundNum;
-
-        public RollService(ApplicationContext db, IConfiguration config)
+        
+        public RollService(ApplicationContext db, IConfiguration config, BackgroundImageService backgroundImageService)
         {
             _db = db;
-            _config = config;
+            _backgroundImageService = backgroundImageService;
             _culture = new CultureInfo("en-US");
-
-            _maxNoneBackgroundNum = _config.GetValue<int>("Images:NoneImagesMaxNum");
-            _maxOtherBackgroundNum = _config.GetValue<int>("Images:OtherImagesMaxNum");
         }
 
         public async Task<int> RollSprint(BoardModel board, List<int>? spilloverTasks)
@@ -213,11 +207,11 @@ namespace WinterWay.Services
             int maxVal;
             if (rollType == RollType.None)
             {
-                maxVal = _maxNoneBackgroundNum;
+                maxVal = _backgroundImageService.BackgroundData!.Count.None;
             }
             else
             {
-                maxVal = _maxOtherBackgroundNum;
+                maxVal = _backgroundImageService.BackgroundData!.Count.Other;
             }
             Random rnd = new Random();
             int newImage;

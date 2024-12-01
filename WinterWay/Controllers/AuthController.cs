@@ -10,6 +10,7 @@ using WinterWay.Models.DTOs.Error;
 using WinterWay.Models.DTOs.Requests;
 using WinterWay.Models.DTOs.Responses;
 using WinterWay.Models.Database;
+using WinterWay.Services;
 
 namespace WinterWay.Controllers
 {
@@ -21,6 +22,7 @@ namespace WinterWay.Controllers
         private readonly UserManager<UserModel> _userManager;
         private readonly SignInManager<UserModel> _signInManager;
         private readonly IConfiguration _config;
+        private readonly BackgroundImageService _backgroundImageService;
 
         private readonly string _appName;
         private readonly string _version;
@@ -28,10 +30,11 @@ namespace WinterWay.Controllers
         private readonly bool _registrationForOnlyFirst;
         private readonly bool _importAvailable;
 
-        public AuthController(ApplicationContext db, UserManager<UserModel> userManager, SignInManager<UserModel> signInManager, IConfiguration config)
+        public AuthController(ApplicationContext db, UserManager<UserModel> userManager, SignInManager<UserModel> signInManager, IConfiguration config, BackgroundImageService backgroundImageService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _backgroundImageService = backgroundImageService;
             _config = config;
             _db = db;
 
@@ -197,6 +200,12 @@ namespace WinterWay.Controllers
             var user = await _userManager.GetUserAsync(User);
 
             return Ok(new UserStatusDTO(user!.Id, user.UserName!, user.Theme, user.AutoCompleteTasks));
+        }
+
+        [HttpGet("background-status")]
+        public async Task<IActionResult> BackgroundStatus()
+        {
+            return Ok(_backgroundImageService.BackgroundData);
         }
 
         [HttpGet("app-status")]

@@ -48,6 +48,7 @@ builder.Services.AddControllers(options =>
 });
 
 builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<RollService>();
 builder.Services.AddScoped<CompleteTaskService>();
@@ -55,6 +56,8 @@ builder.Services.AddScoped<CalendarService>();
 builder.Services.AddScoped<TimerService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddSingleton<RateLimiterService>();
+builder.Services.AddSingleton<BackgroundImageService>();
+builder.Services.AddHostedService<StartupService>();
 
 var app = builder.Build();
 

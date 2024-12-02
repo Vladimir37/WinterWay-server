@@ -9,7 +9,7 @@ namespace WinterWay.Services
         private readonly IConfiguration _config;
 
         private readonly string? _backgroundServerURL;
-        public BackgroundResponseDTO? BackgroundData { get; private set; }
+        public BackgroundFullDataDTO? BackgroundData { get; private set; }
             
         public BackgroundImageService(HttpClient httpClient, IConfiguration config)
         {
@@ -38,12 +38,14 @@ namespace WinterWay.Services
                 }
 
                 var responseData = await response.Content.ReadAsStringAsync();
-                BackgroundData = JsonSerializer.Deserialize<BackgroundResponseDTO>(responseData);
+                var backgroundPartData = JsonSerializer.Deserialize<BackgroundResponseDTO>(responseData);
 
-                if (BackgroundData == null || BackgroundData.Name != "WinterWay-Images")
+                if (backgroundPartData == null || backgroundPartData.Name != "WinterWay-Images")
                 {
                     throw new Exception($"ERROR: Incorrect image server response");
                 }
+
+                BackgroundData = new BackgroundFullDataDTO(backgroundPartData, _backgroundServerURL);
             }
             catch (Exception ex)
             {

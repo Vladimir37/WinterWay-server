@@ -55,6 +55,7 @@ builder.Services.AddScoped<CompleteTaskService>();
 builder.Services.AddScoped<CalendarService>();
 builder.Services.AddScoped<TimerService>();
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<BackupService>();
 builder.Services.AddSingleton<RateLimiterService>();
 builder.Services.AddSingleton<BackgroundImageService>();
 builder.Services.AddHostedService<StartupService>();

@@ -212,15 +212,18 @@ namespace WinterWay.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> AppStatus()
         {
+            var usersAlreadyExist = await _userManager.Users.AnyAsync();
+            var importIsAvailable = _importAvailable && !usersAlreadyExist;
+                
             if (!_registrationIsPossible)
             {
                 return Ok(new AppStatusDTO(false, false, false, _appName, _version));
             }
             else if (_registrationForOnlyFirst)
             {
-                return Ok(new AppStatusDTO(true, !await _userManager.Users.AnyAsync(), _importAvailable, _appName, _version));
+                return Ok(new AppStatusDTO(true, !await _userManager.Users.AnyAsync(), importIsAvailable, _appName, _version));
             }
-            return Ok(new AppStatusDTO(true, true, _importAvailable, _appName, _version));
+            return Ok(new AppStatusDTO(true, true, importIsAvailable, _appName, _version));
         }
     }
 }

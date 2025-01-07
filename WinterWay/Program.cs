@@ -10,6 +10,7 @@ using WinterWay.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var webFrontendUrl = builder.Configuration.GetValue<string>("WebFrontendURL");
 
 builder.Services.AddDbContext<ApplicationContext>(options =>
 {
@@ -27,6 +28,17 @@ builder.Services.AddIdentity<UserModel, IdentityRole>(options =>
 })
     .AddEntityFrameworkStores<ApplicationContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontendApp", policy =>
+    {
+        policy.WithOrigins(webFrontendUrl!)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -65,9 +77,11 @@ var app = builder.Build();
 //Uncomment when https will be ready
 //app.UseHttpsRedirection();
 
+app.UseCors("AllowFrontendApp");
+
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.MapControllers()
-    .RequireAuthorization();
+    .RequireAuthorization(); 
 
 app.Run();

@@ -4,12 +4,12 @@
     {
         public string AppName { get; }
         public string AppVersion { get; }
-        public bool RegistraionIsPossible { get; set; }
+        public bool RegistrationIsPossible { get; set; }
         public bool RegistrationIsAvailable { get; set; }
         public bool ImportIsAvailable { get; set; }
-        public AppStatusDTO(bool registraionIsPossible, bool registrationIsAvailable, bool importIsAvailable, string name, string version)
+        public AppStatusDTO(bool registrationIsPossible, bool registrationIsAvailable, bool importIsAvailable, string name, string version)
         {
-            RegistraionIsPossible = registraionIsPossible;
+            RegistrationIsPossible = registrationIsPossible;
             RegistrationIsAvailable = registrationIsAvailable;
             ImportIsAvailable = importIsAvailable;
             AppName = name;

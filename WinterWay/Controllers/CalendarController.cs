@@ -6,6 +6,7 @@ using WinterWay.Enums;
 using WinterWay.Models.Database;
 using WinterWay.Models.DTOs.Error;
 using WinterWay.Models.DTOs.Requests;
+using WinterWay.Models.DTOs.Responses;
 using WinterWay.Services;
 
 namespace WinterWay.Controllers
@@ -203,7 +204,7 @@ namespace WinterWay.Controllers
             }
             await _db.SaveChangesAsync();
 
-            return Ok("Calendar has been removed");
+            return Ok(new ApiSuccessDTO("CalendarDeletion"));
         }
 
         [HttpGet("get-all")]

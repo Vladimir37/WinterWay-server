@@ -63,7 +63,7 @@ namespace WinterWay.Controllers
             {
                 return BadRequest(new ApiError(InternalError.Other, "Import error"));
             }
-            return Ok(user.UserName);
+            return Ok(new ApiSuccessDTO($"Imported - '{user.UserName}'"));
         }
 
         [HttpPost("export")]

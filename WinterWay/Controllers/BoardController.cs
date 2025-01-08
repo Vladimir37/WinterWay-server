@@ -6,6 +6,7 @@ using WinterWay.Models.Database;
 using WinterWay.Models.DTOs.Requests;
 using WinterWay.Models.DTOs.Error;
 using WinterWay.Enums;
+using WinterWay.Models.DTOs.Responses;
 using WinterWay.Services;
 
 namespace WinterWay.Controllers
@@ -241,7 +242,7 @@ namespace WinterWay.Controllers
             }
             await _db.SaveChangesAsync();
 
-            return Ok("Board has been removed");
+            return Ok(new ApiSuccessDTO("BoardDeletion"));
         }
 
         [HttpGet("all-boards")]

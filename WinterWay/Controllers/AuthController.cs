@@ -67,7 +67,7 @@ namespace WinterWay.Controllers
 
                 await _signInManager.SignInWithClaimsAsync(user, authProperties, authClaims);
 
-                return Ok("Successful authorization");
+                return Ok(new ApiSuccessDTO("Login"));
             }
             return Unauthorized(new ApiError(InternalError.InvalidUserData, "Invalid user data"));
         }
@@ -76,7 +76,7 @@ namespace WinterWay.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            return Ok("Successful logout");
+            return Ok(new ApiSuccessDTO("Logout"));
         }
 
         [HttpPost("signup")]
@@ -140,7 +140,7 @@ namespace WinterWay.Controllers
 
             if (result.Succeeded)
             {
-                return Ok("User created");
+                return Ok(new ApiSuccessDTO("Registration"));
             }
             return BadRequest(new ApiError(InternalError.Other, "Signup error"));
         }
@@ -164,7 +164,7 @@ namespace WinterWay.Controllers
             var resultUsernameUpdate = await _userManager.SetUserNameAsync(user, editUserForm.Username);
             if (resultUsernameUpdate.Succeeded && resultThemeUpdate.Succeeded)
             {
-                return Ok("User has been updated");
+                return Ok(new ApiSuccessDTO("UserEdit"));
             }
             return BadRequest(new ApiError(InternalError.Other, "User edit error"));
         }
@@ -182,18 +182,11 @@ namespace WinterWay.Controllers
             var result = await _userManager.ChangePasswordAsync(user!, changePasswordForm.OldPassword!, changePasswordForm.NewPassword!);
             if (result.Succeeded)
             {
-                return Ok("Password has been changed");
+                return Ok(new ApiSuccessDTO("PasswordUpdate"));
             }
             return BadRequest(new ApiError(InternalError.Other, "Password has not been changed"));
         }
-
-        [HttpGet("access-denied")]
-        [AllowAnonymous]
-        public async Task<IActionResult> AccessDenied()
-        {
-            return Unauthorized(new ApiError(InternalError.NotAuthorized, "User is not authorized"));
-        }
-
+        
         [HttpGet("user-status")]
         public async Task<IActionResult> UserStatus()
         {
@@ -203,6 +196,7 @@ namespace WinterWay.Controllers
         }
 
         [HttpGet("background-status")]
+        [AllowAnonymous]
         public async Task<IActionResult> BackgroundStatus()
         {
             return Ok(_backgroundImageService.BackgroundData);

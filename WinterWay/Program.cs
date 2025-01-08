@@ -1,10 +1,13 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using WinterWay.Data;
+using WinterWay.Enums;
 using WinterWay.Models.Database;
 using WinterWay.Filters;
 using WinterWay.Middlewares;
+using WinterWay.Models.DTOs.Error;
 using WinterWay.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,7 +49,17 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.HttpOnly = false;
     options.ExpireTimeSpan = TimeSpan.FromDays(30);
     options.SlidingExpiration = true;
-    options.LoginPath = "/api/auth/access-denied";
+    
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnRedirectToLogin = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.ContentType = "application/json";
+
+            return context.Response.WriteAsJsonAsync(new ApiError(InternalError.NotAuthorized, "User is not authenticated"));
+        }
+    };
 });
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -78,6 +91,9 @@ var app = builder.Build();
 //app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontendApp");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseMiddleware<ErrorHandlerMiddleware>();
 

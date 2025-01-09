@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WinterWay.Attributes;
 using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database;
@@ -63,7 +62,7 @@ namespace WinterWay.Controllers
             {
                 return BadRequest(new ApiError(InternalError.Other, "Import error"));
             }
-            return Ok(new ApiSuccessDTO($"Imported - '{user.UserName}'"));
+            return Ok(new ApiSuccessDTO($"Imported|'{user.UserName}'"));
         }
 
         [HttpPost("export")]

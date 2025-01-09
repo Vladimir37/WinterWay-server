@@ -6,7 +6,7 @@
 
         public BackgroundFullDataDTO(BackgroundResponseDTO backgroundResponse, string serverURL)
         {
-            Name = backgroundResponse.Name;
+            AppName = backgroundResponse.AppName;
             Dir = backgroundResponse.Dir;
             Extension = backgroundResponse.Extension;
             Count = backgroundResponse.Count;

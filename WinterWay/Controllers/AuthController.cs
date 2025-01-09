@@ -67,7 +67,10 @@ namespace WinterWay.Controllers
 
                 await _signInManager.SignInWithClaimsAsync(user, authProperties, authClaims);
 
-                return Ok(new ApiSuccessDTO("Login"));
+                // return Ok(new ApiSuccessDTO("Login"));
+                var userObj = await _userManager.GetUserAsync(User);
+
+                return Ok(new UserStatusDTO(userObj!.Id, userObj.UserName!, userObj.Theme, userObj.AutoCompleteTasks));
             }
             return Unauthorized(new ApiError(InternalError.InvalidUserData, "Invalid user data"));
         }

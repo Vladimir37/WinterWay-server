@@ -2,8 +2,8 @@
 
 public class ApiSuccessDTO
 {
-    public bool Success = true;
-    public string Operation;
+    public bool Success { get; set; } = true;
+    public string Operation { get; set; }
 
     public ApiSuccessDTO(string operation)
     {

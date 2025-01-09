@@ -40,7 +40,7 @@ namespace WinterWay.Services
                 var responseData = await response.Content.ReadAsStringAsync();
                 var backgroundPartData = JsonSerializer.Deserialize<BackgroundResponseDTO>(responseData);
 
-                if (backgroundPartData == null || backgroundPartData.Name != "WinterWay-Images")
+                if (backgroundPartData == null || backgroundPartData.AppName != "WinterWay-Images")
                 {
                     throw new Exception($"ERROR: Incorrect image server response");
                 }

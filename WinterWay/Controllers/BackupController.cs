@@ -12,11 +12,9 @@ using WinterWay.Services;
 
 namespace WinterWay.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class BackupController : ControllerBase
     {
-        private readonly ApplicationContext _db;
         private readonly BackupService _backupService;
         private readonly UserManager<UserModel> _userManager;
         private readonly IConfiguration _config;
@@ -25,7 +23,6 @@ namespace WinterWay.Controllers
         
         public BackupController(ApplicationContext db, BackupService backupService, UserManager<UserModel> userManager, IConfiguration config)
         {
-            _db = db;
             _backupService = backupService;
             _userManager = userManager;
             _config = config;
@@ -51,7 +48,13 @@ namespace WinterWay.Controllers
             };
             var user = JsonSerializer.Deserialize<UserModel>(userRawJson.GetRawText(), options);
 
-            if (user == null)
+            if (
+                user == null || 
+                user.UserName == string.Empty || 
+                user.UserName == null || 
+                user.PasswordHash == string.Empty ||
+                user.PasswordHash == null
+            )
             {
                 return BadRequest(new ApiError(InternalError.InvalidUserData, "Invalid data format"));
             }

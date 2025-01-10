@@ -10,7 +10,6 @@ using WinterWay.Models.DTOs.Requests;
 
 namespace WinterWay.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class CounterController : ControllerBase
     {

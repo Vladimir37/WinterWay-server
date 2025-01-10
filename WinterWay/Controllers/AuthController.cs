@@ -14,7 +14,6 @@ using WinterWay.Services;
 
 namespace WinterWay.Controllers
 {
-    [ApiController]
     [Route("/api/[controller]")]
     public class AuthController : ControllerBase
     {
@@ -67,7 +66,6 @@ namespace WinterWay.Controllers
 
                 await _signInManager.SignInWithClaimsAsync(user, authProperties, authClaims);
 
-                // return Ok(new ApiSuccessDTO("Login"));
                 var userObj = await _userManager.GetUserAsync(User);
 
                 return Ok(new UserStatusDTO(userObj!.Id, userObj.UserName!, userObj.Theme, userObj.AutoCompleteTasks));

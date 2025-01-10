@@ -8,7 +8,6 @@ using WinterWay.Services;
 
 namespace WinterWay.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class NotificationController : ControllerBase
     {

@@ -170,11 +170,12 @@ namespace WinterWay.Controllers
         }
 
         [HttpPost("roll")]
-        public async Task<IActionResult> Roll(RollDTO rollForm)
+        public async Task<IActionResult> Roll([FromBody] RollDTO rollForm)
         {
             var user = await _userManager.GetUserAsync(User);
 
             user = await _db.Users
+                .AsSplitQuery()
                 .Include(u => u.Boards)
                 .ThenInclude(b => b.ActualSprint)
                 .ThenInclude(s => s.Tasks)

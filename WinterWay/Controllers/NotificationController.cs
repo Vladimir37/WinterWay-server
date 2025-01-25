@@ -25,7 +25,7 @@ namespace WinterWay.Controllers
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetNotifications([FromBody] GetNotificationsDTO getNotificationsForm)
+        public async Task<IActionResult> GetNotifications([FromQuery] GetNotificationsDTO getNotificationsForm)
         {
             var user = await _userManager.GetUserAsync(User);
 
@@ -33,6 +33,12 @@ namespace WinterWay.Controllers
             if (getNotificationsForm.Count != null && getNotificationsForm.Count > 0)
             {
                 notificationsCount = getNotificationsForm.Count.Value;
+            }
+
+            var notificationsSkip = 0;
+            if (getNotificationsForm.Skip != null && getNotificationsForm.Skip > 0)
+            {
+                notificationsSkip = getNotificationsForm.Skip.Value;
             }
 
             IQueryable<NotificationModel> allNotificationsQuery = _db.Notifications;
@@ -46,6 +52,7 @@ namespace WinterWay.Controllers
                 .Where(n => !n.Archived)
                 .Where(n => n.UserId == user!.Id)
                 .OrderByDescending(n => n.CreationDate)
+                .Skip(notificationsSkip)
                 .Take(notificationsCount);
             
             var allNotifications = await allNotificationsQuery.ToListAsync();

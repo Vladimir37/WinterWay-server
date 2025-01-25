@@ -130,7 +130,6 @@ namespace WinterWay.Controllers
                 Board = backlogBoard,
             };
 
-
             _db.Sprints.Add(backlogSprint);
             user.BacklogSprint = backlogSprint;
             

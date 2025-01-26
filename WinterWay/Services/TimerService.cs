@@ -21,7 +21,7 @@ namespace WinterWay.Services
                 Active = true,
                 Timer = timerModel,
             };
-            _db.TimerSessions.Add(newTimerSession);
+            await _db.TimerSessions.AddAsync(newTimerSession);
             await _db.SaveChangesAsync();
             return newTimerSession;
         }

@@ -159,7 +159,7 @@ namespace WinterWay.Services
                 UserId = userId
             };
             
-            _db.Notifications.Add(newNotification);
+            await _db.Notifications.AddAsync(newNotification);
             await _db.SaveChangesAsync();
             return newNotification;
         }

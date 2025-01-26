@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
 using WinterWay.Models.Database;
 using WinterWay.Models.DTOs.Requests;
+using WinterWay.Models.DTOs.Responses;
 using WinterWay.Services;
 
 namespace WinterWay.Controllers
@@ -51,13 +52,23 @@ namespace WinterWay.Controllers
             allNotificationsQuery = allNotificationsQuery
                 .Where(n => !n.Archived)
                 .Where(n => n.UserId == user!.Id)
-                .OrderByDescending(n => n.CreationDate)
+                .OrderByDescending(n => n.CreationDate);
+                
+            var unreadNotificationsCount = await _db.Notifications
+                .Where(n => !n.IsRead)
+                .Where(n => !n.Archived)
+                .Where(n => n.UserId == user!.Id)
+                .CountAsync();
+
+            allNotificationsQuery = allNotificationsQuery
                 .Skip(notificationsSkip)
                 .Take(notificationsCount);
             
-            var allNotifications = await allNotificationsQuery.ToListAsync();
+            var allNotificationsList = await allNotificationsQuery.ToListAsync();
+
+            var response = new NotificationsResponseDTO(unreadNotificationsCount, allNotificationsList);
             
-            return Ok(allNotifications);
+            return Ok(response);
         }
 
         [HttpGet("calculate")]
@@ -67,14 +78,23 @@ namespace WinterWay.Controllers
             var requestTypeCalculate = "calculateNotifications";
             var blockPeriod = new TimeSpan(0, 30, 0);
 
+            var unreadCountRequest = _db.Notifications
+                .Where(n => !n.IsRead)
+                .Where(n => !n.Archived)
+                .Where(n => n.UserId == user!.Id);
+
             if (_rateLimiterService.IsRequestAvailableAgain(user!.Id, requestTypeCalculate, blockPeriod))
             {
                 var newNotifications = await _notificationService.Calculate(user.Id);
                 _rateLimiterService.SetLastRequestTime(user.Id, requestTypeCalculate);
-                return Ok(newNotifications);
+                var unreadCount = await unreadCountRequest.CountAsync();
+                var response = new NotificationsResponseDTO(unreadCount, newNotifications);
+                return Ok(response);
             }
 
-            return Ok(new List<NotificationModel>());
+            var unreadCountEmpty = await unreadCountRequest.CountAsync();
+            var emptyResponse = new NotificationsResponseDTO(unreadCountEmpty, []);
+            return Ok(emptyResponse);
         }
 
         [HttpPost("read")]
@@ -93,8 +113,15 @@ namespace WinterWay.Controllers
             }
 
             await _db.SaveChangesAsync();
+
+            var unreadCount = await _db.Notifications
+                .Where(n => !n.IsRead)
+                .Where(n => !n.Archived)
+                .Where(n => n.UserId == user!.Id)
+                .CountAsync();
+            var response = new NotificationsResponseDTO(unreadCount, targetNotifications);
             
-            return Ok(targetNotifications);
+            return Ok(response);
         }
         
         [HttpPost("archive")]
@@ -114,7 +141,14 @@ namespace WinterWay.Controllers
 
             await _db.SaveChangesAsync();
             
-            return Ok(targetNotifications);
+            var unreadCount = await _db.Notifications
+                .Where(n => !n.IsRead)
+                .Where(n => !n.Archived)
+                .Where(n => n.UserId == user!.Id)
+                .CountAsync();
+            var response = new NotificationsResponseDTO(unreadCount, []);
+            
+            return Ok(response);
         }
     }
 }

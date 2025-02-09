@@ -76,7 +76,7 @@ namespace WinterWay.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             var requestTypeCalculate = "calculateNotifications";
-            var blockPeriod = new TimeSpan(0, 30, 0);
+            var blockPeriod = new TimeSpan(0, 15, 0);
 
             var unreadCountRequest = _db.Notifications
                 .Where(n => !n.IsRead)

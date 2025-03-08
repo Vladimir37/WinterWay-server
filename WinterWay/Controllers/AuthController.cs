@@ -107,7 +107,7 @@ namespace WinterWay.Controllers
                 RollStart = RollStart.StartDate,
                 RollDays = 0,
                 CurrentSprintNumber = 0,
-                Color = "#000000",
+                Color = "#8c7fff",
                 IsBacklog = true,
                 Favorite = false,
                 Archived = false,

@@ -212,6 +212,7 @@ namespace WinterWay.Controllers
             var user = await _userManager.GetUserAsync(User);
 
             var allCalendars = await _db.Calendars
+                .Include(c => c.CalendarRecords.Where(cr => cr.Date == DateOnly.FromDateTime(DateTime.UtcNow)))
                 .Where(c => c.UserId == user!.Id)
                 .ToListAsync();
 

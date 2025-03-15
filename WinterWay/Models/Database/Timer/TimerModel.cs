@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
+using WinterWay.Models.Database.Auth;
 
-namespace WinterWay.Models.Database
+namespace WinterWay.Models.Database.Timer
 {
     public class TimerModel
     {

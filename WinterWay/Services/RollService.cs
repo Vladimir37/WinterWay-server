@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
 using WinterWay.Data;
 using WinterWay.Enums;
-using WinterWay.Models.Database;
 using Microsoft.EntityFrameworkCore;
+using WinterWay.Models.Database.Planner;
 
 namespace WinterWay.Services
 {

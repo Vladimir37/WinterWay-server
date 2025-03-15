@@ -1,7 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 using WinterWay.Enums;
+using WinterWay.Models.Database.Auth;
 
-namespace WinterWay.Models.Database
+namespace WinterWay.Models.Database.Planner
 {
     public class BoardModel
     {

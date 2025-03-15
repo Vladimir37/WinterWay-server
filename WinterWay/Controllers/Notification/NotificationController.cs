@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
-using WinterWay.Models.Database;
+using WinterWay.Models.Database.Auth;
+using WinterWay.Models.Database.Notification;
 using WinterWay.Models.DTOs.Requests;
 using WinterWay.Models.DTOs.Responses;
 using WinterWay.Services;
 
-namespace WinterWay.Controllers
+namespace WinterWay.Controllers.Notification
 {
     [Route("api/[controller]")]
     public class NotificationController : ControllerBase

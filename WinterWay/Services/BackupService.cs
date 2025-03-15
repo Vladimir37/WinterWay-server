@@ -1,7 +1,7 @@
-﻿using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
-using WinterWay.Models.Database;
+using WinterWay.Models.Database.Auth;
+using WinterWay.Models.Database.Planner;
 
 namespace WinterWay.Services
 {

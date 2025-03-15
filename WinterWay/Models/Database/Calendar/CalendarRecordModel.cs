@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using WinterWay.Enums;
 
-namespace WinterWay.Models.Database
+namespace WinterWay.Models.Database.Calendar
 {
     public class CalendarRecordModel
     {

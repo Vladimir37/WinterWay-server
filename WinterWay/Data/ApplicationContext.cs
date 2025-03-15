@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using WinterWay.Models.Database;
+using WinterWay.Models.Database.Auth;
+using WinterWay.Models.Database.Calendar;
+using WinterWay.Models.Database.Notification;
+using WinterWay.Models.Database.Planner;
+using WinterWay.Models.Database.Timer;
 
 namespace WinterWay.Data
 {

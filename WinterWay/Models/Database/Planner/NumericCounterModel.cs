@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace WinterWay.Models.Database
+namespace WinterWay.Models.Database.Planner
 {
     public class NumericCounterModel
     {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
 using WinterWay.Enums;
-using WinterWay.Models.Database;
+using WinterWay.Models.Database.Notification;
 
 namespace WinterWay.Services
 {

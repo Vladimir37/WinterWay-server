@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using WinterWay.Data;
 using WinterWay.Enums;
-using WinterWay.Models.Database;
 using WinterWay.Filters;
 using WinterWay.Middlewares;
+using WinterWay.Models.Database.Auth;
 using WinterWay.Models.DTOs.Error;
 using WinterWay.Services;
 

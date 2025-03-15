@@ -2,14 +2,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
-using WinterWay.Models.Database;
-using WinterWay.Models.DTOs.Requests;
-using WinterWay.Models.DTOs.Error;
 using WinterWay.Enums;
+using WinterWay.Models.Database.Auth;
+using WinterWay.Models.Database.Planner;
+using WinterWay.Models.DTOs.Error;
+using WinterWay.Models.DTOs.Requests;
 using WinterWay.Models.DTOs.Responses;
 using WinterWay.Services;
 
-namespace WinterWay.Controllers
+namespace WinterWay.Controllers.Planner
 {
     [Route("api/[controller]")]
     public class BoardController : ControllerBase

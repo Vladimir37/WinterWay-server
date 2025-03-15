@@ -1,18 +1,19 @@
 ﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
-using WinterWay.Enums;
 using WinterWay.Data;
+using WinterWay.Enums;
+using WinterWay.Models.Database.Auth;
+using WinterWay.Models.Database.Planner;
 using WinterWay.Models.DTOs.Error;
 using WinterWay.Models.DTOs.Requests;
 using WinterWay.Models.DTOs.Responses;
-using WinterWay.Models.Database;
 using WinterWay.Services;
 
-namespace WinterWay.Controllers
+namespace WinterWay.Controllers.Auth
 {
     [Route("/api/[controller]")]
     public class AuthController : ControllerBase

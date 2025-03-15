@@ -1,5 +1,5 @@
 ﻿using WinterWay.Data;
-using WinterWay.Models.Database;
+using WinterWay.Models.Database.Timer;
 
 namespace WinterWay.Services
 {

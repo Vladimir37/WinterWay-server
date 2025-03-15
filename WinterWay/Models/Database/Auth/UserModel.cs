@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using WinterWay.Enums;
+using WinterWay.Models.Database.Calendar;
+using WinterWay.Models.Database.Notification;
+using WinterWay.Models.Database.Planner;
+using WinterWay.Models.Database.Timer;
 
-namespace WinterWay.Models.Database
+namespace WinterWay.Models.Database.Auth
 {
     public class UserModel : IdentityUser
     {

@@ -1,4 +1,4 @@
-﻿using WinterWay.Models.Database;
+﻿using WinterWay.Models.Database.Notification;
 
 namespace WinterWay.Models.DTOs.Responses
 {

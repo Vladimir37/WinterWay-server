@@ -5,9 +5,9 @@ using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.Database.Planner;
-using WinterWay.Models.DTOs.Error;
-using WinterWay.Models.DTOs.Requests;
-using WinterWay.Models.DTOs.Responses;
+using WinterWay.Models.DTOs.Requests.Planner;
+using WinterWay.Models.DTOs.Requests.Shared;
+using WinterWay.Models.DTOs.Responses.Shared;
 using WinterWay.Services;
 
 namespace WinterWay.Controllers.Planner
@@ -54,7 +54,7 @@ namespace WinterWay.Controllers.Planner
                 (createTaskForm.SprintId != null && targetSprint == null)
             )
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Board or sprint does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Board or sprint does not exists"));
             }
 
             var otherTasksCount = await _db.Tasks
@@ -102,7 +102,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Task does not exists"));
             }
 
             targetTask.Name = editTaskForm.Name;
@@ -138,12 +138,12 @@ namespace WinterWay.Controllers.Planner
 
             if (!isBoardExists || !isSprintExists || targetTask == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Board, sprint or task does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Board, sprint or task does not exists"));
             }
 
             if (targetTask.SprintId == moveTaskForm.SprintId)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "The old and new sprints are the same"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "The old and new sprints are the same"));
             }
 
             var tasksInSprintInStatusCount = await _db.Tasks
@@ -188,12 +188,12 @@ namespace WinterWay.Controllers.Planner
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Available task does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Available task does not exists"));
             }
 
             if (targetTask.IsDone == changeStatusForm.Status)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "The status has not changed"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "The status has not changed"));
             }
 
             var oldTaskStatus = targetTask.IsDone;
@@ -226,7 +226,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Task does not exists"));
             }
 
             targetTask.Type = changeTypeForm.TaskType;
@@ -265,7 +265,7 @@ namespace WinterWay.Controllers.Planner
 
             if (!allTasksBelongToOneSprint || !allTasksBelongToOneBoard || !allTasksHaveTheSameStatus)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "Tasks have different boards, sprints or statuses"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Tasks have different boards, sprints or statuses"));
             }
 
             var num = 0;
@@ -292,7 +292,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Task does not exists"));
             }
 
             var oldBoardId = targetTask.BoardId;
@@ -343,7 +343,7 @@ namespace WinterWay.Controllers.Planner
 
             if (!targetSprintExists)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Sprint does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Sprint does not exists"));
             }
 
             var targetTasks = await _db.Tasks
@@ -369,7 +369,7 @@ namespace WinterWay.Controllers.Planner
 
             if (!targetBoardExists)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Board does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Board does not exists"));
             }
 
             var targetTasks = await _db.Tasks

@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.Database.Notification;
-using WinterWay.Models.DTOs.Requests;
-using WinterWay.Models.DTOs.Responses;
+using WinterWay.Models.DTOs.Requests.Notification;
+using WinterWay.Models.DTOs.Responses.Notification;
 using WinterWay.Services;
 
 namespace WinterWay.Controllers.Notification

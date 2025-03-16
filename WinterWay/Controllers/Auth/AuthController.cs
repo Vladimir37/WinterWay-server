@@ -8,9 +8,9 @@ using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.Database.Planner;
-using WinterWay.Models.DTOs.Error;
-using WinterWay.Models.DTOs.Requests;
-using WinterWay.Models.DTOs.Responses;
+using WinterWay.Models.DTOs.Requests.Auth;
+using WinterWay.Models.DTOs.Responses.Auth;
+using WinterWay.Models.DTOs.Responses.Shared;
 using WinterWay.Services;
 
 namespace WinterWay.Controllers.Auth
@@ -71,7 +71,7 @@ namespace WinterWay.Controllers.Auth
 
                 return Ok(new UserStatusDTO(userObj!.Id, userObj.UserName!, userObj.Theme, userObj.AutoCompleteTasks));
             }
-            return Unauthorized(new ApiError(InternalError.InvalidUserData, "Invalid user data"));
+            return Unauthorized(new ApiErrorDTO(InternalError.InvalidUserData, "Invalid user data"));
         }
 
         [HttpPost("logout")]
@@ -87,11 +87,11 @@ namespace WinterWay.Controllers.Auth
         {
             if (!_registrationIsPossible || (_registrationForOnlyFirst && await _userManager.Users.AnyAsync()))
             {
-                return StatusCode(403, new ApiError(InternalError.RegistrationIsClosed, "Registration is closed"));
+                return StatusCode(403, new ApiErrorDTO(InternalError.RegistrationIsClosed, "Registration is closed"));
             }
             if (await _userManager.FindByNameAsync(signupForm.Username!) != null)
             {
-                return BadRequest(new ApiError(InternalError.UsernameAlreadyExists, "Username alreay exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.UsernameAlreadyExists, "Username alreay exists"));
             }
 
             var user = new UserModel { 
@@ -143,7 +143,7 @@ namespace WinterWay.Controllers.Auth
             {
                 return Ok(new ApiSuccessDTO("Registration"));
             }
-            return BadRequest(new ApiError(InternalError.Other, "Signup error"));
+            return BadRequest(new ApiErrorDTO(InternalError.Other, "Signup error"));
         }
 
         [HttpPost("edit-user")]
@@ -152,11 +152,11 @@ namespace WinterWay.Controllers.Auth
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return Unauthorized(new ApiError(InternalError.InvalidUserData, "Invalid user data"));
+                return Unauthorized(new ApiErrorDTO(InternalError.InvalidUserData, "Invalid user data"));
             }
             if (await _userManager.FindByNameAsync(editUserForm.Username!) != null && editUserForm.Username != user.UserName)
             {
-                return BadRequest(new ApiError(InternalError.UsernameAlreadyExists, "Username alreay exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.UsernameAlreadyExists, "Username alreay exists"));
             }
             
             user.Theme = editUserForm.Theme;
@@ -167,7 +167,7 @@ namespace WinterWay.Controllers.Auth
             {
                 return Ok(new ApiSuccessDTO("UserEdit"));
             }
-            return BadRequest(new ApiError(InternalError.Other, "User edit error"));
+            return BadRequest(new ApiErrorDTO(InternalError.Other, "User edit error"));
         }
 
         [HttpPost("change-password")]
@@ -177,7 +177,7 @@ namespace WinterWay.Controllers.Auth
 
             if (!await _userManager.CheckPasswordAsync(user!, changePasswordForm.OldPassword!))
             {
-                return BadRequest(new ApiError(InternalError.InvalidUserData, "Incorrect password"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidUserData, "Incorrect password"));
             }
 
             var result = await _userManager.ChangePasswordAsync(user!, changePasswordForm.OldPassword!, changePasswordForm.NewPassword!);
@@ -185,7 +185,7 @@ namespace WinterWay.Controllers.Auth
             {
                 return Ok(new ApiSuccessDTO("PasswordUpdate"));
             }
-            return BadRequest(new ApiError(InternalError.Other, "Password has not been changed"));
+            return BadRequest(new ApiErrorDTO(InternalError.Other, "Password has not been changed"));
         }
         
         [HttpGet("user-status")]

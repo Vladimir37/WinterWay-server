@@ -5,9 +5,9 @@ using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.Database.Calendar;
-using WinterWay.Models.DTOs.Error;
-using WinterWay.Models.DTOs.Requests;
-using WinterWay.Models.DTOs.Responses;
+using WinterWay.Models.DTOs.Requests.Calendar;
+using WinterWay.Models.DTOs.Requests.Shared;
+using WinterWay.Models.DTOs.Responses.Shared;
 using WinterWay.Services;
 
 namespace WinterWay.Controllers.Calendar
@@ -38,7 +38,7 @@ namespace WinterWay.Controllers.Calendar
 
             if (createCalendarForm.SerializedDefaultValue != null && !await _calendarService.Validate(createCalendarForm.SerializedDefaultValue, -1, createCalendarForm.Type))
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "Invalid default value"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Invalid default value"));
             }
 
             var newCalendar = new CalendarModel
@@ -72,12 +72,12 @@ namespace WinterWay.Controllers.Calendar
 
             if (targetCalendar == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Calendar does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Calendar does not exists"));
             }
 
             if (!await _calendarService.Validate(editCalendarForm.SerializedDefaultValue, targetCalendar.Id, targetCalendar.Type))
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "Invalid default value"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Invalid default value"));
             }
 
             targetCalendar.Name = editCalendarForm.Name;
@@ -100,12 +100,12 @@ namespace WinterWay.Controllers.Calendar
 
             if (targetCalendar == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Calendar does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Calendar does not exists"));
             }
 
             if (targetCalendar.Archived == changeArchiveStatusForm.Status)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "The new calendar status is no different from the old one"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "The new calendar status is no different from the old one"));
             }
 
             var countOfCalendarsInNewStatus = await _db.Calendars
@@ -156,7 +156,7 @@ namespace WinterWay.Controllers.Calendar
 
             if (!allCalendarsBelongToOneStatus)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "All calendars must be active"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "All calendars must be active"));
             }
 
             var num = 0;
@@ -182,7 +182,7 @@ namespace WinterWay.Controllers.Calendar
 
             if (targetCalendar == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Calendar does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Calendar does not exists"));
             }
 
             var removedCalendarArchiveStatus = targetCalendar.Archived;

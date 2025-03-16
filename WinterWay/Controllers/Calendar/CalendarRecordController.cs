@@ -5,9 +5,9 @@ using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.Database.Calendar;
-using WinterWay.Models.DTOs.Error;
-using WinterWay.Models.DTOs.Requests;
-using WinterWay.Models.DTOs.Responses;
+using WinterWay.Models.DTOs.Requests.Calendar;
+using WinterWay.Models.DTOs.Requests.Shared;
+using WinterWay.Models.DTOs.Responses.Shared;
 using WinterWay.Services;
 
 namespace WinterWay.Controllers.Calendar
@@ -39,14 +39,14 @@ namespace WinterWay.Controllers.Calendar
 
             if (targetCalendar == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Calendar does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Calendar does not exists"));
             }
 
             var validDay = _calendarService.ParseDate(createCalendarRecordForm.Date, out DateOnly targetDay);
 
             if (!validDay)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "Invalid date format"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Invalid date format"));
             }
 
             var isDateAlreadyExists = await _db.CalendarRecords
@@ -56,12 +56,12 @@ namespace WinterWay.Controllers.Calendar
 
             if (isDateAlreadyExists)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "A record for this day already exists in this calendar"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "A record for this day already exists in this calendar"));
             }
 
             if (!await _calendarService.Validate(createCalendarRecordForm.SerializedValue, targetCalendar.Id, targetCalendar.Type))
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "Invalid value"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Invalid value"));
             }
 
             var newRecord = new CalendarRecordModel(targetDay, createCalendarRecordForm.Text, targetCalendar.Id, targetCalendar.Type, createCalendarRecordForm.SerializedValue);
@@ -76,7 +76,7 @@ namespace WinterWay.Controllers.Calendar
 
                 if (lastCalendarRecord == null)
                 {
-                    return BadRequest(new ApiError(InternalError.InvalidForm, "Unable to fill a calendar with less than two records"));
+                    return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Unable to fill a calendar with less than two records"));
                 }
 
                 List<CalendarRecordModel> daysBetween = new List<CalendarRecordModel>();
@@ -108,7 +108,7 @@ namespace WinterWay.Controllers.Calendar
 
             if (targetCalendarRecord == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Calendar record does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Calendar record does not exists"));
             }
 
             targetCalendarRecord.Text = editCalendarRecordForm.Text;
@@ -131,7 +131,7 @@ namespace WinterWay.Controllers.Calendar
 
             if (targetCalendarRecord == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Calendar record does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Calendar record does not exists"));
             }
 
             _db.CalendarRecords.Remove(targetCalendarRecord);

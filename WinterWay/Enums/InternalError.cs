@@ -13,5 +13,6 @@
         InvalidForm = 8,
         ElementNotFound = 9,
         CannotChangeFixedBackground = 10,
+        UnableToChangeParameterValue = 11,
     }
 }

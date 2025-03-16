@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
-using WinterWay.Models.DTOs.Error;
-using WinterWay.Models.DTOs.Requests;
-using WinterWay.Models.DTOs.Responses;
+using WinterWay.Models.DTOs.Requests.Planner;
+using WinterWay.Models.DTOs.Requests.Shared;
+using WinterWay.Models.DTOs.Responses.Shared;
 using WinterWay.Services;
 
 namespace WinterWay.Controllers.Planner
@@ -44,7 +44,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetSprint == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Active sprint does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Active sprint does not exists"));
             }
 
             targetSprint.Name = editSprintForm.Name;
@@ -71,13 +71,13 @@ namespace WinterWay.Controllers.Planner
 
             if (targetSprint == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Active sprint does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Active sprint does not exists"));
             }
 
             RollType rollType = targetSprint.Board.RollType;
             if (rollType == RollType.Day || rollType == RollType.Month)
             {
-                return BadRequest(new ApiError(InternalError.CannotChangeFixedBackground, "Can't change fixed background"));
+                return BadRequest(new ApiErrorDTO(InternalError.CannotChangeFixedBackground, "Can't change fixed background"));
             }
 
             int newImageNum = _rollService.SelectImageForSprint(rollType, targetSprint.CreationDate, targetSprint.Image);
@@ -105,7 +105,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetSprint == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Archive sprint does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Archive sprint does not exists"));
             }
 
             _db.Sprints.Remove(targetSprint);
@@ -133,7 +133,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetSprint == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Active sprint does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Active sprint does not exists"));
             }
 
             return Ok(targetSprint);

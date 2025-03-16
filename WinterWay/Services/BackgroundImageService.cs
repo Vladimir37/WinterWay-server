@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using WinterWay.Models.DTOs.Responses;
+using WinterWay.Models.DTOs.Responses.Background;
 
 namespace WinterWay.Services
 {

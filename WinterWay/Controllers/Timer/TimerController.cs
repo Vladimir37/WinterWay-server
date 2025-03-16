@@ -5,9 +5,9 @@ using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.Database.Timer;
-using WinterWay.Models.DTOs.Error;
-using WinterWay.Models.DTOs.Requests;
-using WinterWay.Models.DTOs.Responses;
+using WinterWay.Models.DTOs.Requests.Shared;
+using WinterWay.Models.DTOs.Requests.Timer;
+using WinterWay.Models.DTOs.Responses.Shared;
 using WinterWay.Services;
 
 namespace WinterWay.Controllers.Timer
@@ -70,7 +70,7 @@ namespace WinterWay.Controllers.Timer
 
             if (targetTimer == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Timer does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Timer does not exists"));
             }
 
             targetTimer.Name = editTimerForm.Name;
@@ -92,7 +92,7 @@ namespace WinterWay.Controllers.Timer
 
             if (targetTimer == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Timer does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Timer does not exists"));
             }
 
             _db.Timers.Remove(targetTimer);
@@ -112,7 +112,7 @@ namespace WinterWay.Controllers.Timer
 
             if (targetTimer == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Timer does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Timer does not exists"));
             }
 
             await _timerService.StopTimer(targetTimer);
@@ -133,7 +133,7 @@ namespace WinterWay.Controllers.Timer
 
             if (targetTimer == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Timer does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Timer does not exists"));
             }
 
             await _timerService.StopTimer(targetTimer);
@@ -153,12 +153,12 @@ namespace WinterWay.Controllers.Timer
 
             if (targetTimer == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Timer does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Timer does not exists"));
             }
 
             if (targetTimer.Archived == changeArchiveStatusForm.Status)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "The new timer status is no different from the old one"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "The new timer status is no different from the old one"));
             }
 
             if (changeArchiveStatusForm.Status)
@@ -207,7 +207,7 @@ namespace WinterWay.Controllers.Timer
 
             if (!allTimersBelongToOneStatus)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "All timers values must be active"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "All timers values must be active"));
             }
 
             var num = 0;

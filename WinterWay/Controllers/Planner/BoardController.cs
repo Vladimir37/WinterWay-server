@@ -5,9 +5,9 @@ using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.Database.Planner;
-using WinterWay.Models.DTOs.Error;
-using WinterWay.Models.DTOs.Requests;
-using WinterWay.Models.DTOs.Responses;
+using WinterWay.Models.DTOs.Requests.Planner;
+using WinterWay.Models.DTOs.Requests.Shared;
+using WinterWay.Models.DTOs.Responses.Shared;
 using WinterWay.Services;
 
 namespace WinterWay.Controllers.Planner
@@ -73,7 +73,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetBoard == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Board does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Board does not exists"));
             }
 
             targetBoard.Name = editBoardForm.Name;
@@ -105,7 +105,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetBoard == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Active board does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Active board does not exists"));
             }
 
             if (changeArchiveStatusForm.Status && targetBoard.ActualSprint != null)
@@ -156,7 +156,7 @@ namespace WinterWay.Controllers.Planner
 
             if (!allBoardsBelongToOneStatus)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "All boards must be active"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "All boards must be active"));
             }
 
             var num = 0;
@@ -192,7 +192,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetBoard == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Active board does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Active board does not exists"));
             }
 
             var previousSprint = targetBoard.ActualSprint;
@@ -223,7 +223,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetBoard == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Archive board does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Archive board does not exists"));
             }
 
             _db.Boards.Remove(targetBoard);

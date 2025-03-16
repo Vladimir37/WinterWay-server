@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.Database.Calendar;
+using WinterWay.Models.Database.Diary;
 using WinterWay.Models.Database.Notification;
 using WinterWay.Models.Database.Planner;
 using WinterWay.Models.Database.Timer;
@@ -24,12 +25,16 @@ namespace WinterWay.Data
         public DbSet<TimerModel> Timers { get; set; }
         public DbSet<TimerSessionModel> TimerSessions { get; set; }
         public DbSet<NotificationModel> Notifications { get; set; }
+        public DbSet<DiaryGroupModel> DiaryGroups { get; set; }
+        public DbSet<DiaryActivityModel> DiaryActivities { get; set; }
+        public DbSet<DiaryRecordModel> DiaryRecords { get; set; }
+        public DbSet<DiaryRecordGroupModel> DiaryRecordGroups { get; set; }
+        public DbSet<DiaryRecordActivityModel> DiaryRecordActivities { get; set; }
 
         public ApplicationContext(DbContextOptions<ApplicationContext> options)
             : base(options)
-        {
-            //
-        }
+        {}
+        
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

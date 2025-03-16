@@ -7,7 +7,7 @@ using WinterWay.Enums;
 using WinterWay.Filters;
 using WinterWay.Middlewares;
 using WinterWay.Models.Database.Auth;
-using WinterWay.Models.DTOs.Error;
+using WinterWay.Models.DTOs.Responses.Shared;
 using WinterWay.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -57,7 +57,7 @@ builder.Services.ConfigureApplicationCookie(options =>
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.ContentType = "application/json";
 
-            return context.Response.WriteAsJsonAsync(new ApiError(InternalError.NotAuthorized, "User is not authenticated"));
+            return context.Response.WriteAsJsonAsync(new ApiErrorDTO(InternalError.NotAuthorized, "User is not authenticated"));
         }
     };
 });

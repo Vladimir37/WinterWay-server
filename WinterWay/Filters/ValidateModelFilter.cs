@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using WinterWay.Models.DTOs.Error;
 using WinterWay.Enums;
+using WinterWay.Models.DTOs.Responses.Shared;
 
 namespace WinterWay.Filters
 {
@@ -11,7 +11,7 @@ namespace WinterWay.Filters
         {
             if (!context.ModelState.IsValid)
             {
-                var error = new ApiError(InternalError.InvalidForm, "Invalid form", context.ModelState.Keys.ToList());
+                var error = new ApiErrorDTO(InternalError.InvalidForm, "Invalid form", context.ModelState.Keys.ToList());
 
                 context.Result = new BadRequestObjectResult(error);
             }

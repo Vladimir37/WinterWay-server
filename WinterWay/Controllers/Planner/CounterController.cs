@@ -5,8 +5,9 @@ using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.Database.Planner;
-using WinterWay.Models.DTOs.Error;
-using WinterWay.Models.DTOs.Requests;
+using WinterWay.Models.DTOs.Requests.Planner;
+using WinterWay.Models.DTOs.Requests.Shared;
+using WinterWay.Models.DTOs.Responses.Shared;
 using WinterWay.Services;
 
 namespace WinterWay.Controllers.Planner
@@ -40,7 +41,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Task does not exists"));
             }
 
             var countOfSubtasks = await _db.Subtasks
@@ -77,7 +78,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetSubtask == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Subtask does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Subtask does not exists"));
             }
 
             targetSubtask.Text = editSubtaskForm.Text;
@@ -105,7 +106,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetSubtask == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Subtask in sprint does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Subtask in sprint does not exists"));
             }
 
             targetSubtask.IsDone = changeStatusForm.Status;
@@ -137,7 +138,7 @@ namespace WinterWay.Controllers.Planner
 
             if (!allSubtasksBelongToOneTask)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "Subtasks belong to different tasks"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Subtasks belong to different tasks"));
             }
 
             var num = 0;
@@ -167,7 +168,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetSubtask == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Subtask does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Subtask does not exists"));
             }
 
             _db.Subtasks.Remove(targetSubtask);
@@ -208,7 +209,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Task does not exists"));
             }
 
             var countOfTextCounters = await _db.TextCounters
@@ -247,7 +248,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetTextCounter == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Text counter does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Text counter does not exists"));
             }
 
             targetTextCounter.Text = editTextCounterForm.Text;
@@ -275,7 +276,7 @@ namespace WinterWay.Controllers.Planner
 
             if (!allTextCountersBelongToOneTask)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "Text counters belong to different tasks"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Text counters belong to different tasks"));
             }
 
             var num = 0;
@@ -305,7 +306,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetTextCounter == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Text counter does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Text counter does not exists"));
             }
 
             _db.TextCounters.Remove(targetTextCounter);
@@ -344,7 +345,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetTask == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Task does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Task does not exists"));
             }
 
             var countOfSumCounters = await _db.SumCounters
@@ -384,7 +385,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetSumCounter == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Sum counter does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Sum counter does not exists"));
             }
 
             targetSumCounter.Text = editSumCounterForm.Text;
@@ -413,7 +414,7 @@ namespace WinterWay.Controllers.Planner
 
             if (!allTextCountersBelongToOneTask)
             {
-                return BadRequest(new ApiError(InternalError.InvalidForm, "Sum counters belong to different tasks"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Sum counters belong to different tasks"));
             }
 
             var num = 0;
@@ -443,7 +444,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetSumCounter == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Sum counter does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Sum counter does not exists"));
             }
 
             _db.SumCounters.Remove(targetSumCounter);
@@ -479,7 +480,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetNumericCounter == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Numeric counter does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Numeric counter does not exists"));
             }
 
             targetNumericCounter.Name = editNumericCounterForm.Name;
@@ -505,7 +506,7 @@ namespace WinterWay.Controllers.Planner
 
             if (targetNumericCounter == null)
             {
-                return BadRequest(new ApiError(InternalError.ElementNotFound, "Numeric counter does not exists"));
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Numeric counter does not exists"));
             }
 
             targetNumericCounter.Value = changeNumericCounterValueForm.Value;

@@ -192,7 +192,7 @@ namespace WinterWay.Controllers.Timer
             return Ok(targetTimer);
         }
 
-        [HttpPost("change-timers-order")]
+        [HttpPost("change-sort-order")]
         public async Task<IActionResult> ChangeTimersOrder([FromBody] ChangeElementsOrderDTO changeTimersOrderForm)
         {
             var user = await _userManager.GetUserAsync(User);

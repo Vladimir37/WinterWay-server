@@ -247,7 +247,7 @@ namespace WinterWay.Controllers.Planner
             return Ok(targetTask);
         }
 
-        [HttpPost("change-tasks-order")]
+        [HttpPost("change-sort-order")]
         public async Task<IActionResult> ChangeTasksOrder([FromBody] ChangeElementsOrderDTO changeTasksOrderForm)
         {
             var user = await _userManager.GetUserAsync(User);

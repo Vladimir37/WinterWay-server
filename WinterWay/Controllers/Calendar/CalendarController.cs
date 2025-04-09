@@ -141,7 +141,7 @@ namespace WinterWay.Controllers.Calendar
             return Ok(targetCalendar);
         }
 
-        [HttpPost("change-calendars-order")]
+        [HttpPost("change-sort-order")]
         public async Task<IActionResult> ChangeCalendarsOrder([FromBody] ChangeElementsOrderDTO changeCalendarsOrderForm)
         {
             var user = await _userManager.GetUserAsync(User);

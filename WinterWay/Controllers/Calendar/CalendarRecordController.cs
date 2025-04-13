@@ -18,12 +18,14 @@ namespace WinterWay.Controllers.Calendar
         private readonly ApplicationContext _db;
         private readonly UserManager<UserModel> _userManager;
         private readonly CalendarService _calendarService;
+        private readonly DateTimeService _dateTimeService;
 
-        public CalendarRecordController(ApplicationContext db, UserManager<UserModel> userManager, CalendarService calendarService)
+        public CalendarRecordController(ApplicationContext db, UserManager<UserModel> userManager, CalendarService calendarService, DateTimeService dateTimeService)
         {
             _db = db;
             _userManager = userManager;
             _calendarService = calendarService;
+            _dateTimeService = dateTimeService;
         }
 
         [HttpPost("create")]
@@ -42,7 +44,7 @@ namespace WinterWay.Controllers.Calendar
                 return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Calendar does not exists"));
             }
 
-            var validDay = _calendarService.ParseDate(createCalendarRecordForm.Date, out DateOnly targetDay);
+            var validDay = _dateTimeService.ParseDate(createCalendarRecordForm.Date, out DateOnly targetDay);
 
             if (!validDay)
             {
@@ -147,12 +149,12 @@ namespace WinterWay.Controllers.Calendar
             var dateStart = DateOnly.MinValue;
             var dateEnd = DateOnly.MaxValue;
 
-            if (getCalendarRecordsForm.DateStart != null && _calendarService.ParseDate(getCalendarRecordsForm.DateStart, out DateOnly startDate))
+            if (getCalendarRecordsForm.DateStart != null && _dateTimeService.ParseDate(getCalendarRecordsForm.DateStart, out DateOnly startDate))
             {
                 dateStart = startDate;
             }
 
-            if (getCalendarRecordsForm.DateEnd != null && _calendarService.ParseDate(getCalendarRecordsForm.DateEnd, out DateOnly endDate))
+            if (getCalendarRecordsForm.DateEnd != null && _dateTimeService.ParseDate(getCalendarRecordsForm.DateEnd, out DateOnly endDate))
             {
                 dateEnd = endDate;
             }

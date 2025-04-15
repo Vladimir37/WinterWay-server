@@ -142,7 +142,7 @@ namespace WinterWay.Controllers.Calendar
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllCalendarRecords([FromBody] GetCalendarRecordsDTO getCalendarRecordsForm)
+        public async Task<IActionResult> GetAllCalendarRecords([FromQuery] GetCalendarRecordsDTO getCalendarRecordsForm)
         {
             var user = await _userManager.GetUserAsync(User);
 

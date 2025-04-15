@@ -83,6 +83,12 @@ namespace WinterWay.Services
                     .ThenInclude(t => t.TimerSessions)
                 // Notifications
                 .Include(u => u.Notifications)
+                // Diary
+                .Include(u => u.DiaryGroups)
+                    .ThenInclude(dg => dg.Activities)
+                .Include(u => u.DiaryGroups)
+                    .ThenInclude(dg => dg.RecordGroups)
+                        .ThenInclude(rg => rg.Activities)
                 .FirstOrDefaultAsync(u => u.Id == userId);
             
             return user!;

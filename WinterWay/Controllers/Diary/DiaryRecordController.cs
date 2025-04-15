@@ -5,6 +5,7 @@ using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.DTOs.Requests.Diary;
+using WinterWay.Models.DTOs.Requests.Shared;
 using WinterWay.Models.DTOs.Responses.Shared;
 using WinterWay.Services;
 
@@ -72,6 +73,70 @@ namespace WinterWay.Controllers.Diary
             await _db.DiaryRecords.AddAsync(recordModel!);
             await _db.SaveChangesAsync();
             return Ok(recordModel);
+        }
+
+        [HttpPost("remove")]
+        public async Task<IActionResult> RemoveDiaryRecord([FromBody] IdDTO idForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            
+            var targetDiaryRecord = _db.DiaryRecords
+                .Include(dr => dr.Groups)
+                    .ThenInclude(dr => dr.Activities)
+                .Where(dr => dr.Id == idForm.Id)
+                .Where(dr => dr.UserId == user!.Id)
+                .FirstOrDefault();
+            
+            if (targetDiaryRecord == null)
+            {
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Diary record does not exists"));
+            }
+            
+            foreach (var group in targetDiaryRecord.Groups)
+            {
+                _db.DiaryRecordActivities.RemoveRange(group.Activities);
+            }
+            _db.DiaryRecordGroups.RemoveRange(targetDiaryRecord.Groups);
+            _db.DiaryRecords.Remove(targetDiaryRecord);
+            await _db.SaveChangesAsync();
+            return Ok(new ApiSuccessDTO("DiaryRecordDeletion"));
+        }
+
+        [HttpGet("get-all")]
+        public async Task<IActionResult> GetAllDiaryRecords([FromQuery] GetDiaryRecordsDTO getDiaryRecordsForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            
+            var dateStart = DateOnly.MinValue;
+            var dateEnd = DateOnly.MaxValue;
+
+            if (getDiaryRecordsForm.DateStart != null && _dateTimeService.ParseDate(getDiaryRecordsForm.DateStart, out DateOnly startDate))
+            {
+                dateStart = startDate;
+            }
+
+            if (getDiaryRecordsForm.DateEnd != null && _dateTimeService.ParseDate(getDiaryRecordsForm.DateEnd, out DateOnly endDate))
+            {
+                dateEnd = endDate;
+            }
+
+            var maxCountOfElements = int.MaxValue;
+
+            if (getDiaryRecordsForm.MaxCount != null && getDiaryRecordsForm.MaxCount > 0)
+            {
+                maxCountOfElements = getDiaryRecordsForm.MaxCount.Value;
+            }
+            
+            var targetRecords = _db.DiaryRecords
+                .Include(dr => dr.Groups)
+                    .ThenInclude(dg => dg.Activities)
+                .Where(dr => dr.UserId == user!.Id)
+                .Where(dr => dr.Date > dateStart)
+                .Where(dr => dr.Date < dateEnd)
+                .OrderByDescending(dr => dr.Date)
+                .Take(maxCountOfElements);
+
+            return Ok(targetRecords);
         }
     }
 }

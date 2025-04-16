@@ -127,7 +127,7 @@ namespace WinterWay.Services
                 .Where(group => !group.CanBeEmpty)
                 .Select(group => group.Id)
                 .ToList();
-            var allMultipleOptionsGroups = allGroups
+            var allSingleOptionsGroups = allGroups
                 .Where(group => !group.Multiple)
                 .Select(group => group.Id)
                 .ToList();
@@ -137,25 +137,25 @@ namespace WinterWay.Services
             var missedRequiredGroups = allRequiredGroups
                 .Where(groupId => !allGroupsKeys.Contains(groupId))
                 .ToList();
-            var incorrectMultipleGroups = allMultipleOptionsGroups
-                .Where(groupId => userActivities[groupId].Count > 0)
+            var incorrectMultipleGroups = allSingleOptionsGroups
+                .Where(groupId => allGroupsKeys.Contains(groupId) && userActivities[groupId].Count > 1)
                 .ToList();
 
             if (missedRequiredGroups.Count > 0)
             {
-                var missedGroupNames = missedRequiredGroups
-                    .Select(num => allGroupsDict[num].Name)
+                var missedGroupIds = missedRequiredGroups
+                    .Select(num => num.ToString())
                     .ToList();
-                error = new ApiErrorDTO(InternalError.InvalidForm, "Required groups are missing", missedGroupNames);
+                error = new ApiErrorDTO(InternalError.InvalidForm, "Required groups are missing", missedGroupIds);
                 return false;
             }
 
             if (incorrectMultipleGroups.Count > 0)
             {
-                var incorrectGroupNames = incorrectMultipleGroups
-                    .Select(num => allGroupsDict[num].Name)
+                var incorrectGroupIds = incorrectMultipleGroups
+                    .Select(num => num.ToString())
                     .ToList();
-                error = new ApiErrorDTO(InternalError.InvalidForm, "Multiple values in a group with only one option", incorrectGroupNames);
+                error = new ApiErrorDTO(InternalError.InvalidForm, "Multiple values in a group with only one option", incorrectGroupIds);
                 return false;
             }
 
@@ -170,9 +170,9 @@ namespace WinterWay.Services
                 }
                 foreach (var activityKey in userActivities[groupKey])
                 {
-                    if (!allActivities[groupKey].ContainsKey(activityKey) && !incorrectActivities.Contains(allGroupsDict[groupKey].Name))
+                    if (!allActivities[groupKey].ContainsKey(activityKey) && !incorrectActivities.Contains(activityKey.ToString()))
                     {
-                        incorrectActivities.Add(allGroupsDict[groupKey].Name);
+                        incorrectActivities.Add(activityKey.ToString());
                     }
                 }
             }

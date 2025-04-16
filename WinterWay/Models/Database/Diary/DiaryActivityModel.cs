@@ -1,4 +1,6 @@
-﻿namespace WinterWay.Models.Database.Diary
+﻿using System.Text.Json.Serialization;
+
+namespace WinterWay.Models.Database.Diary
 {
     public class DiaryActivityModel
     {
@@ -10,8 +12,10 @@
         public bool Archived { get; set; }
         
         public int DiaryGroupId { get; set; }
+        [JsonIgnore]
         public DiaryGroupModel DiaryGroup { get; set; }
         
+        [JsonIgnore]
         public List<DiaryRecordActivityModel> RecordActivities { get; set; } =  new List<DiaryRecordActivityModel>();
     }
 }

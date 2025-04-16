@@ -79,6 +79,7 @@ builder.Services.AddScoped<RollService>();
 builder.Services.AddScoped<CompleteTaskService>();
 builder.Services.AddScoped<DateTimeService>();
 builder.Services.AddScoped<CalendarService>();
+builder.Services.AddScoped<DiaryService>();
 builder.Services.AddScoped<TimerService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<BackupService>();

@@ -64,35 +64,21 @@ namespace WinterWay.Controllers.Diary
             }
 
             var multipleStatusChangeError = false;
-            var canBeEmptyStatusChangeError = false;
 
             if (targetDiaryGroup.Multiple && !editDiaryGroupForm.Multiple)
             {
                 multipleStatusChangeError = await _db.DiaryRecordGroups
                     .Include(drg => drg.DiaryRecord)
                     .Include(drg => drg.Activities)
-                    .Where(drg => drg.DiaryRecord.UserId == user!.Id)
+                    .Where(drg => drg.DiaryGroupId == targetDiaryGroup.Id)
                     .Where(drg => drg.Activities.Count() > 1)
-                    .AnyAsync();
-            }
-
-            if (targetDiaryGroup.CanBeEmpty && !editDiaryGroupForm.CanBeEmpty)
-            {
-                canBeEmptyStatusChangeError = await _db.DiaryRecordGroups
-                    .Include(drg => drg.DiaryRecord)
-                    .Include(drg => drg.Activities)
                     .Where(drg => drg.DiaryRecord.UserId == user!.Id)
-                    .Where(drg => !drg.Activities.Any())
                     .AnyAsync();
             }
-
+            
             if (multipleStatusChangeError)
             {
                 return BadRequest(new ApiErrorDTO(InternalError.UnableToChangeParameterValue, "It is impossible to make the group's values single, as it already has multiple values"));
-            }
-            if (canBeEmptyStatusChangeError)
-            {
-                return BadRequest(new ApiErrorDTO(InternalError.UnableToChangeParameterValue, "It is impossible to make the group's values required, as it already has empty values"));
             }
             
             targetDiaryGroup.Name = editDiaryGroupForm.Name;

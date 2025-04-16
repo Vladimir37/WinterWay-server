@@ -86,9 +86,9 @@ namespace WinterWay.Services
                 // Diary
                 .Include(u => u.DiaryGroups)
                     .ThenInclude(dg => dg.Activities)
-                .Include(u => u.DiaryGroups)
-                    .ThenInclude(dg => dg.RecordGroups)
-                        .ThenInclude(rg => rg.Activities)
+                .Include(u => u.DiaryRecords)
+                    .ThenInclude(dr => dr.Groups)
+                        .ThenInclude(dg => dg.Activities)
                 .FirstOrDefaultAsync(u => u.Id == userId);
             
             return user!;

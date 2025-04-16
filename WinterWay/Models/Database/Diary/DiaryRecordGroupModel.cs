@@ -12,6 +12,7 @@ namespace WinterWay.Models.Database.Diary
         public DiaryRecordModel DiaryRecord { get; set; }
         
         public int DiaryGroupId { get; set; }
+        [JsonIgnore]
         public DiaryGroupModel DiaryGroup { get; set; }
         
         public List<DiaryRecordActivityModel> Activities { get; set; }

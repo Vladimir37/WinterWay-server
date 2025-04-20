@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
 using WinterWay.Enums;
+using WinterWay.Models.Database.Calendar;
 
 namespace WinterWay.Services
 {
@@ -56,6 +57,110 @@ namespace WinterWay.Services
                 .Where(cv => cv.Id == valueId)
                 .Where(cv => !cv.Archived)
                 .AnyAsync();
+        }
+
+        public CalendarRecordModel? GetCalendarRecord(
+            int calendarId, 
+            bool isDefault,
+            DateOnly? date, 
+            string text,
+            CalendarType type,
+            string value
+        )
+        {
+            var newRecord = new CalendarRecordModel
+            {
+                Date = date,
+                Text = text,
+                IsDefault = isDefault,
+                CalendarId = calendarId,
+            };
+
+            if (type == CalendarType.Boolean)
+            {
+                bool.TryParse(value, out var valBool);
+                var boolModel = new CalendarRecordBooleanModel
+                {
+                    Value = valBool,
+                };
+                newRecord.BooleanVal = boolModel;
+            } 
+            else if (type == CalendarType.Numeric)
+            {
+                int.TryParse(value, out var valNumeric);
+                var numModel = new CalendarRecordNumericModel
+                {
+                    Value = valNumeric,
+                };
+                newRecord.NumericVal = numModel;
+            }
+            else if (type == CalendarType.Time)
+            {
+                TimeSpan.TryParse(value, out var valTime);
+                var timeModel = new CalendarRecordTimeModel
+                {
+                    Value = valTime,
+                };
+                newRecord.TimeVal = timeModel;
+            }
+            else if (type == CalendarType.Fixed)
+            {
+                int.TryParse(value, out var valFixed);
+                var fixedModel = new CalendarRecordFixedModel
+                {
+                    FixedValueId = valFixed,
+                };
+                newRecord.FixedVal = fixedModel;
+            }
+            else
+            {
+                return null;
+            }
+
+            return newRecord;
+        }
+
+        public CalendarRecordModel GetRecordCopy(CalendarRecordModel record, DateOnly date, CalendarType type)
+        {
+            var newRecord = new CalendarRecordModel
+            {
+                Date = date,
+                IsDefault = false,
+                Text = String.Empty,
+                CalendarId = record.CalendarId,
+            };
+            
+            if (type == CalendarType.Boolean)
+            {
+                newRecord.BooleanVal = new CalendarRecordBooleanModel
+                {
+                    Value = record.BooleanVal!.Value,
+                };
+            } 
+            else if (type == CalendarType.Numeric)
+            {
+                newRecord.NumericVal = new CalendarRecordNumericModel
+                {
+                    Value = record.NumericVal!.Value,
+                };
+            }
+            else if (type == CalendarType.Time)
+            {
+                newRecord.TimeVal = new CalendarRecordTimeModel
+                {
+                    Value = record.TimeVal!.Value,
+                };
+            }
+            else if (type == CalendarType.Fixed)
+            {
+                Console.WriteLine(record);
+                newRecord.FixedVal = new CalendarRecordFixedModel
+                {
+                    FixedValueId = record.FixedVal!.FixedValueId,
+                };
+            }
+
+            return newRecord;
         }
     }
 }

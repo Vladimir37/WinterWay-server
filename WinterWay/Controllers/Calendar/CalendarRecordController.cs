@@ -34,6 +34,14 @@ namespace WinterWay.Controllers.Calendar
             var user = await _userManager.GetUserAsync(User);
 
             var targetCalendar = await _db.Calendars
+                .Include(c => c.DefaultRecord)
+                    .ThenInclude(dr => dr.BooleanVal)
+                .Include(c => c.DefaultRecord)
+                    .ThenInclude(dr => dr.NumericVal)
+                .Include(c => c.DefaultRecord)
+                    .ThenInclude(dr => dr.TimeVal)
+                .Include(c => c.DefaultRecord)
+                    .ThenInclude(dr => dr.FixedVal)
                 .Where(c => c.Id == createCalendarRecordForm.CalendarId)
                 .Where(c => !c.Archived)
                 .Where(c => c.UserId == user!.Id)
@@ -66,12 +74,24 @@ namespace WinterWay.Controllers.Calendar
                 return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Invalid value"));
             }
 
-            var newRecord = new CalendarRecordModel(targetDay, createCalendarRecordForm.Text, targetCalendar.Id, targetCalendar.Type, createCalendarRecordForm.SerializedValue);
+            var newRecord = _calendarService.GetCalendarRecord(
+                createCalendarRecordForm.CalendarId,
+                false,
+                targetDay,
+                createCalendarRecordForm.Text,
+                targetCalendar.Type,
+                createCalendarRecordForm.SerializedValue
+            );
+            if (newRecord == null)
+            {
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Invalid type of default value"));
+            }
 
-            if (createCalendarRecordForm.FillDefaultValues && targetCalendar.SerializedDefaultValue != null)
+            if (createCalendarRecordForm.FillDefaultValues && targetCalendar.DefaultRecord != null)
             {
                 var lastCalendarRecord = await _db.CalendarRecords
                     .Where(cr => cr.CalendarId == targetCalendar.Id)
+                    .Where(cr => cr.Date != null && !cr.IsDefault)
                     .Where(cr => cr.Date < newRecord.Date)
                     .OrderByDescending(cr => cr.Date)
                     .FirstOrDefaultAsync();
@@ -83,9 +103,9 @@ namespace WinterWay.Controllers.Calendar
 
                 List<CalendarRecordModel> daysBetween = new List<CalendarRecordModel>();
 
-                for (var stepDay = lastCalendarRecord.Date.AddDays(1); stepDay < newRecord.Date; stepDay = stepDay.AddDays(1))
+                for (var stepDay = lastCalendarRecord.Date!.Value.AddDays(1); stepDay < newRecord.Date; stepDay = stepDay.AddDays(1))
                 {
-                    var dayBetweenRecord = new CalendarRecordModel(stepDay, null, targetCalendar.Id, targetCalendar.Type, targetCalendar.SerializedDefaultValue);
+                    var dayBetweenRecord = _calendarService.GetRecordCopy(targetCalendar.DefaultRecord, stepDay, targetCalendar.Type);
                     daysBetween.Add(dayBetweenRecord);
                 }
 
@@ -104,6 +124,10 @@ namespace WinterWay.Controllers.Calendar
 
             var targetCalendarRecord = await _db.CalendarRecords
                 .Include(cr => cr.Calendar)
+                .Include(cr => cr.BooleanVal)
+                .Include(cr => cr.NumericVal)
+                .Include(cr => cr.TimeVal)
+                .Include(cr => cr.FixedVal)
                 .Where(cr => cr.Id == editCalendarRecordForm.CalendarRecordId)
                 .Where(cr => cr.Calendar.UserId == user!.Id)
                 .FirstOrDefaultAsync();
@@ -112,12 +136,48 @@ namespace WinterWay.Controllers.Calendar
             {
                 return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Calendar record does not exists"));
             }
+            
+            if (!await _calendarService.Validate(editCalendarRecordForm.SerializedValue, targetCalendarRecord.CalendarId, targetCalendarRecord.Calendar.Type))
+            {
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Invalid value"));
+            }
 
-            targetCalendarRecord.Text = editCalendarRecordForm.Text;
-            targetCalendarRecord.SetNewValue(editCalendarRecordForm.SerializedValue, targetCalendarRecord.Calendar.Type);
+            var editedRecord = _calendarService.GetCalendarRecord(
+                targetCalendarRecord.CalendarId,
+                false,
+                targetCalendarRecord.Date,
+                editCalendarRecordForm.Text,
+                targetCalendarRecord.Calendar.Type,
+                editCalendarRecordForm.SerializedValue
+            );
+            if (editedRecord == null)
+            {
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Invalid type of default value"));
+            }
+            
+            if (targetCalendarRecord.BooleanVal != null)
+            {
+                _db.CalendarRecordBooleans.Remove(targetCalendarRecord.BooleanVal);
+            }
+
+            if (targetCalendarRecord.NumericVal != null)
+            {
+                _db.CalendarRecordNumerics.Remove(targetCalendarRecord.NumericVal);
+            }
+
+            if (targetCalendarRecord.TimeVal != null)
+            {
+                _db.CalendarRecordTimes.Remove(targetCalendarRecord.TimeVal);
+            }
+
+            if (targetCalendarRecord.FixedVal != null)
+            {
+                _db.CalendarRecordFixeds.Remove(targetCalendarRecord.FixedVal);
+            }
+            _db.CalendarRecords.Remove(targetCalendarRecord);
+            await _db.CalendarRecords.AddAsync(editedRecord);
             await _db.SaveChangesAsync();
-
-            return Ok(targetCalendarRecord);
+            return Ok(editedRecord);
         }
 
         [HttpPost("remove")]
@@ -127,6 +187,10 @@ namespace WinterWay.Controllers.Calendar
 
             var targetCalendarRecord = await _db.CalendarRecords
                 .Include(cr => cr.Calendar)
+                .Include(cr => cr.BooleanVal)
+                .Include(cr => cr.NumericVal)
+                .Include(cr => cr.TimeVal)
+                .Include(cr => cr.FixedVal)
                 .Where(cr => cr.Id == idForm.Id)
                 .Where(cr => cr.Calendar.UserId == user!.Id)
                 .FirstOrDefaultAsync();
@@ -136,6 +200,25 @@ namespace WinterWay.Controllers.Calendar
                 return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Calendar record does not exists"));
             }
 
+            if (targetCalendarRecord.BooleanVal != null)
+            {
+                _db.CalendarRecordBooleans.Remove(targetCalendarRecord.BooleanVal);
+            }
+
+            if (targetCalendarRecord.NumericVal != null)
+            {
+                _db.CalendarRecordNumerics.Remove(targetCalendarRecord.NumericVal);
+            }
+
+            if (targetCalendarRecord.TimeVal != null)
+            {
+                _db.CalendarRecordTimes.Remove(targetCalendarRecord.TimeVal);
+            }
+
+            if (targetCalendarRecord.FixedVal != null)
+            {
+                _db.CalendarRecordFixeds.Remove(targetCalendarRecord.FixedVal);
+            }
             _db.CalendarRecords.Remove(targetCalendarRecord);
             await _db.SaveChangesAsync();
             return Ok(new ApiSuccessDTO("CalendarRecordDeletion"));
@@ -168,13 +251,21 @@ namespace WinterWay.Controllers.Calendar
 
             var targetRecords = _db.CalendarRecords
                 .Include(cr => cr.Calendar)
+                .Include(cr => cr.BooleanVal)
+                .Include(cr => cr.NumericVal)
+                .Include(cr => cr.TimeVal)
+                .Include(cr => cr.FixedVal)
+                    .ThenInclude(fv => fv.FixedValue)
                 .Where(cr => cr.CalendarId == getCalendarRecordsForm.CalendarId)
                 .Where(cr => cr.Calendar.UserId == user!.Id)
+                .Where(cr => !cr.IsDefault)
+                .Where(cr => cr.Date != null)
                 .Where(cr => cr.Date > dateStart)
                 .Where(cr => cr.Date < dateEnd)
                 .OrderByDescending(cr => cr.Date)
-                .Take(maxCountOfElements);
-
+                .Take(maxCountOfElements)
+                .ToList();
+            
             return Ok(targetRecords);
         }
     }

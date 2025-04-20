@@ -9,6 +9,5 @@ namespace WinterWay.Models.DTOs.Requests.Calendar
         public string? Text { get; set; }
         [Required]
         public string SerializedValue { get; set; }
-
     }
 }

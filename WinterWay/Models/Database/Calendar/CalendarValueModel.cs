@@ -14,6 +14,6 @@ namespace WinterWay.Models.Database.Calendar
         [JsonIgnore]
         public CalendarModel Calendar { get; set; }
         [JsonIgnore]
-        public List<CalendarRecordModel> CalendarRecords { get; set; } = new List<CalendarRecordModel>();
+        public List<CalendarRecordFixedModel> CalendarFixedRecords { get; set; } = new List<CalendarRecordFixedModel>();
     }
 }

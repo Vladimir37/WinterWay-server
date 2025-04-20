@@ -21,6 +21,10 @@ namespace WinterWay.Data
         public DbSet<NumericCounterModel> NumericCounters { get; set; }
         public DbSet<CalendarModel> Calendars { get; set; }
         public DbSet<CalendarRecordModel> CalendarRecords { get; set; }
+        public DbSet<CalendarRecordBooleanModel> CalendarRecordBooleans { get; set; }
+        public DbSet<CalendarRecordNumericModel> CalendarRecordNumerics { get; set; }
+        public DbSet<CalendarRecordTimeModel> CalendarRecordTimes { get; set; }
+        public DbSet<CalendarRecordFixedModel> CalendarRecordFixeds { get; set; }
         public DbSet<CalendarValueModel> CalendarValues { get; set; }
         public DbSet<TimerModel> Timers { get; set; }
         public DbSet<TimerSessionModel> TimerSessions { get; set; }
@@ -49,6 +53,17 @@ namespace WinterWay.Data
                 .WithMany()
                 .HasForeignKey(s => s.ActualSprintId)
                 .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.Entity<CalendarModel>()
+                .HasOne(c => c.DefaultRecord)
+                .WithMany() 
+                .HasForeignKey(c => c.DefaultRecordId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.Entity<CalendarRecordModel>()
+                .HasOne(r => r.Calendar)
+                .WithMany(c => c.CalendarRecords)
+                .HasForeignKey(r => r.CalendarId);
         }
     }
 }

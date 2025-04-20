@@ -134,7 +134,7 @@ namespace WinterWay.Controllers.Calendar
 
             var targetCalendarValue = await _db.CalendarValues
                 .Include(cv => cv.Calendar)
-                .Include(cv => cv.CalendarRecords)
+                .Include(cv => cv.CalendarFixedRecords)
                 .Where(cv => cv.Id == idForm.Id)
                 .Where(cv => cv.Calendar.UserId == user!.Id)
                 .FirstOrDefaultAsync();
@@ -143,8 +143,8 @@ namespace WinterWay.Controllers.Calendar
             {
                 return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Calendar value does not exists"));
             }
-
-            if (targetCalendarValue.CalendarRecords.Any())
+            
+            if (targetCalendarValue.CalendarFixedRecords.Any())
             {
                 return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "To delete, the value must have no records"));
             }

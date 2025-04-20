@@ -10,7 +10,6 @@ namespace WinterWay.Models.Database.Calendar
         public string Name { get; set; }
         public CalendarType Type { get; set; }
         public string? Color { get; set; }
-        public string? SerializedDefaultValue { get; set; }
         public int SortOrder { get; set; }
         public bool Archived { get; set; }
         public bool NotificationActive { get; set; }
@@ -20,6 +19,8 @@ namespace WinterWay.Models.Database.Calendar
         public string UserId { get; set; }
         [JsonIgnore]
         public UserModel User { get; set; }
+        public int? DefaultRecordId { get; set; }
+        public CalendarRecordModel? DefaultRecord { get; set; }
         public List<CalendarRecordModel> CalendarRecords { get; set; }
         public List<CalendarValueModel> CalendarValues { get; set; }
     }

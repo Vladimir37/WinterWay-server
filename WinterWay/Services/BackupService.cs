@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
 using WinterWay.Models.Database.Auth;
+using WinterWay.Models.Database.Calendar;
 using WinterWay.Models.Database.Planner;
 
 namespace WinterWay.Services
@@ -18,6 +19,9 @@ namespace WinterWay.Services
         {
             int? backlogSprintId = user.BacklogSprintId;
             Dictionary<int, int?> actualSprints = new Dictionary<int, int?>();
+            Dictionary<int, int?> defaultRecordIds = new Dictionary<int, int?>();
+            Dictionary<int, CalendarRecordModel?> defaultRecords = new Dictionary<int, CalendarRecordModel?>();
+            List<CalendarRecordFixedModel> fixedRecords = new List<CalendarRecordFixedModel>();
             
             try
             {
@@ -33,15 +37,44 @@ namespace WinterWay.Services
                         sprint.Tasks = new List<TaskModel>();
                     }
                 }
+
+                foreach (var calendar in user.Calendars)
+                {
+                    defaultRecordIds[calendar.Id] = calendar.DefaultRecordId;
+                    defaultRecords[calendar.Id] = calendar.DefaultRecord;
+                    calendar.DefaultRecordId = null;
+                    calendar.DefaultRecord = null;
+                    foreach (var record in calendar.CalendarRecords)
+                    {
+                        if (record.FixedVal != null)
+                        {
+                            record.FixedVal.FixedValue = null;
+                            fixedRecords.Add(record.FixedVal);
+                        }
+                        record.FixedVal = null;
+                    }
+                }
                 
                 await _db.Users.AddAsync(user);
                 await _db.SaveChangesAsync();
+                
+                // Rewrite
                 
                 user.BacklogSprintId = backlogSprintId;
                 foreach (var board in user.Boards)
                 {
                     board.ActualSprintId = actualSprints[board.Id];
                 }
+                foreach (var calendar in user.Calendars)
+                {
+                    calendar.DefaultRecordId = defaultRecordIds[calendar.Id];
+                    calendar.DefaultRecord = defaultRecords[calendar.Id];
+                    // foreach (var record in calendar.CalendarRecords)
+                    // {
+                    //     record.FixedVal = null;
+                    // }
+                }
+                _db.CalendarRecordFixeds.AddRange(fixedRecords);
                 await _db.SaveChangesAsync();
                 
                 return true;

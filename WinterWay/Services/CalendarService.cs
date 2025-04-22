@@ -153,7 +153,6 @@ namespace WinterWay.Services
             }
             else if (type == CalendarType.Fixed)
             {
-                Console.WriteLine(record);
                 newRecord.FixedVal = new CalendarRecordFixedModel
                 {
                     FixedValueId = record.FixedVal!.FixedValueId,

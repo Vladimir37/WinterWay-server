@@ -288,6 +288,8 @@ namespace WinterWay.Controllers.Calendar
 
             var targetCalendar = await _db.Calendars
                 .Include(c => c.CalendarValues)
+                .Include(c => c.DefaultRecord)
+                    .ThenInclude(calendarRecordModel => calendarRecordModel.BooleanVal)
                 .Include(c => c.CalendarRecords)
                     .ThenInclude(cr => cr.BooleanVal)
                 .Include(c => c.CalendarRecords)
@@ -296,6 +298,12 @@ namespace WinterWay.Controllers.Calendar
                     .ThenInclude(cr => cr.TimeVal)
                 .Include(c => c.CalendarRecords)
                     .ThenInclude(cr => cr.FixedVal)
+                .Include(calendarModel => calendarModel.DefaultRecord)
+                    .ThenInclude(calendarRecordModel => calendarRecordModel.NumericVal)
+                .Include(calendarModel => calendarModel.DefaultRecord)
+                    .ThenInclude(calendarRecordModel => calendarRecordModel.TimeVal)
+                .Include(calendarModel => calendarModel.DefaultRecord)
+                    .ThenInclude(calendarRecordModel => calendarRecordModel.FixedVal)
                 .Where(c => c.Id == idForm.Id)
                 .Where(c => c.UserId == user!.Id)
                 .FirstOrDefaultAsync();
@@ -306,6 +314,31 @@ namespace WinterWay.Controllers.Calendar
             }
 
             var removedCalendarArchiveStatus = targetCalendar.Archived;
+
+            if (targetCalendar.DefaultRecord != null)
+            {
+                if (targetCalendar.DefaultRecord.BooleanVal != null)
+                {
+                    _db.CalendarRecordBooleans.Remove(targetCalendar.DefaultRecord.BooleanVal);
+                }
+
+                if (targetCalendar.DefaultRecord.NumericVal != null)
+                {
+                    _db.CalendarRecordNumerics.Remove(targetCalendar.DefaultRecord.NumericVal);
+                }
+
+                if (targetCalendar.DefaultRecord.TimeVal != null)
+                {
+                    _db.CalendarRecordTimes.Remove(targetCalendar.DefaultRecord.TimeVal);
+                }
+
+                if (targetCalendar.DefaultRecord.FixedVal != null)
+                {
+                    _db.CalendarRecordFixeds.Remove(targetCalendar.DefaultRecord.FixedVal);
+                }
+                _db.CalendarRecords.Remove(targetCalendar.DefaultRecord);
+                await _db.SaveChangesAsync();
+            }
 
             foreach (var record in targetCalendar.CalendarRecords)
             {
@@ -384,7 +417,6 @@ namespace WinterWay.Controllers.Calendar
             var user = await _userManager.GetUserAsync(User);
 
             var targetCalendar = await _db.Calendars
-                .Include(c => c.CalendarRecords)
                 .Include(c => c.CalendarValues)
                 .Include(c => c.DefaultRecord)
                     .ThenInclude(cr => cr.BooleanVal)

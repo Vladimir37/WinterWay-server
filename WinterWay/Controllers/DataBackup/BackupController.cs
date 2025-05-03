@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
-using WinterWay.Models.DTOs.Requests.Backup;
-using WinterWay.Models.DTOs.Responses.Backup;
+using WinterWay.Models.DTOs.Requests.DataBackup;
+using WinterWay.Models.DTOs.Responses.DataBackup;
 using WinterWay.Models.DTOs.Responses.Shared;
 using WinterWay.Services;
 

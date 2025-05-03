@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
+using WinterWay.Models.DTOs.Requests.Backup;
+using WinterWay.Models.DTOs.Responses.Backup;
 using WinterWay.Models.DTOs.Responses.Shared;
 using WinterWay.Services;
 
@@ -31,7 +33,7 @@ namespace WinterWay.Controllers.DataBackup
 
         [HttpPost("import")]
         [AllowAnonymous]
-        public async Task<IActionResult> ImportUserData([FromBody] JsonElement userRawJson)
+        public async Task<IActionResult> ImportUserData([FromBody] ImportUserDTO userRaw)
         {
             var usersAlreadyExist = await _userManager.Users.AnyAsync();
             
@@ -40,30 +42,18 @@ namespace WinterWay.Controllers.DataBackup
                 return BadRequest(new ApiErrorDTO(InternalError.ImportIsClosed, "Import is unavailable"));
             }
             
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-            var user = JsonSerializer.Deserialize<UserModel>(userRawJson.GetRawText(), options);
+            var result = _backupService.Import(userRaw.User, out bool formatError, out string username);
 
-            if (
-                user == null || 
-                user.UserName == string.Empty || 
-                user.UserName == null || 
-                user.PasswordHash == string.Empty ||
-                user.PasswordHash == null
-            )
+            if (!result && !formatError)
+            {
+                return BadRequest(new ApiErrorDTO(InternalError.Other, "Import error"));
+            } 
+            else if (!result && formatError)
             {
                 return BadRequest(new ApiErrorDTO(InternalError.InvalidUserData, "Invalid data format"));
             }
             
-            var result = await _backupService.Import(user);
-
-            if (!result)
-            {
-                return BadRequest(new ApiErrorDTO(InternalError.Other, "Import error"));
-            }
-            return Ok(new ApiSuccessDTO($"Imported|'{user.UserName}'"));
+            return Ok(new ApiSuccessDTO("Import", username));
         }
 
         [HttpPost("export")]
@@ -71,7 +61,7 @@ namespace WinterWay.Controllers.DataBackup
         {
             var user = await _userManager.GetUserAsync(User);
             
-            return Ok(await _backupService.Export(user!.Id));
+            return Ok(new ExportUserDTO(await _backupService.Export(user!.Id)));
         }
     }
 }

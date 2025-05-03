@@ -72,6 +72,7 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<ValidateModelFilter>();
 });
 
+builder.Services.AddDataProtection();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient();
 

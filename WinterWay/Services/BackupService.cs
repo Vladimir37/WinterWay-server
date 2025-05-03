@@ -1,22 +1,60 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Security.Cryptography;
+using System.Text.Json;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
 using WinterWay.Data;
+using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.Database.Calendar;
 using WinterWay.Models.Database.Planner;
+using WinterWay.Models.DTOs.Responses.Shared;
 
 namespace WinterWay.Services
 {
     public class BackupService
     {
         private readonly ApplicationContext _db;
+        private readonly IDataProtector _protector;
 
-        public BackupService(ApplicationContext db)
+        public BackupService(ApplicationContext db, IDataProtectionProvider protector)
         {
             _db = db;
+            _protector = protector.CreateProtector("BackupService");
         }
 
-        public async Task<bool> Import(UserModel user)
+        public bool Import(string userEncrypted, out bool formatError, out string username)
         {
+            UserModel? user = null;
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                
+                var json = _protector.Unprotect(userEncrypted);
+                user = JsonSerializer.Deserialize<UserModel>(json, options);
+            }
+            catch (CryptographicException)
+            {
+                formatError = true;
+                username = String.Empty;
+                return false;
+            }
+
+            if (
+                user == null || 
+                user.UserName == string.Empty || 
+                user.UserName == null || 
+                user.PasswordHash == string.Empty ||
+                user.PasswordHash == null
+            )
+            {
+                formatError = true;
+                username = String.Empty;
+                return false;
+            }
+            
             int? backlogSprintId = user.BacklogSprintId;
             Dictionary<int, int?> actualSprints = new Dictionary<int, int?>();
             Dictionary<int, int?> defaultRecordIds = new Dictionary<int, int?>();
@@ -55,10 +93,8 @@ namespace WinterWay.Services
                     }
                 }
                 
-                await _db.Users.AddAsync(user);
-                await _db.SaveChangesAsync();
-                
-                // Rewrite
+                _db.Users.Add(user);
+                _db.SaveChanges();
                 
                 user.BacklogSprintId = backlogSprintId;
                 foreach (var board in user.Boards)
@@ -69,24 +105,24 @@ namespace WinterWay.Services
                 {
                     calendar.DefaultRecordId = defaultRecordIds[calendar.Id];
                     calendar.DefaultRecord = defaultRecords[calendar.Id];
-                    // foreach (var record in calendar.CalendarRecords)
-                    // {
-                    //     record.FixedVal = null;
-                    // }
                 }
                 _db.CalendarRecordFixeds.AddRange(fixedRecords);
-                await _db.SaveChangesAsync();
+                _db.SaveChanges();
                 
+                formatError = false;
+                username = user.UserName;
                 return true;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                formatError = false;
+                username = String.Empty;
                 return false;
             }
         }
 
-        public async Task<UserModel> Export(string userId)
+        public async Task<string> Export(string userId)
         {
             var user = await _db.Users
                 // Boards, sprints and sprint results
@@ -133,8 +169,10 @@ namespace WinterWay.Services
                     .ThenInclude(dr => dr.Groups)
                         .ThenInclude(dg => dg.Activities)
                 .FirstOrDefaultAsync(u => u.Id == userId);
-            
-            return user!;
+
+            var userJson = JsonSerializer.Serialize(user);
+            var protectedUserJson = _protector.Protect(userJson);
+            return protectedUserJson;
         }
     }
 }

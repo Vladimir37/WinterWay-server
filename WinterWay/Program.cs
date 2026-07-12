@@ -90,6 +90,12 @@ builder.Services.AddHostedService<StartupService>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+    dbContext.Database.Migrate();
+}
+
 //Uncomment when https will be ready
 //app.UseHttpsRedirection();
 

@@ -11,6 +11,7 @@ namespace WinterWay.Models.Database.Planner
         public RollType RollType { get; set; }
         public RollStart RollStart { get; set; }
         public int RollDays { get; set; }
+        public DistributionScale DistributionModes { get; set; }
         public int CurrentSprintNumber { get; set; }
         public string? Color { get; set; }
         public bool IsBacklog { get; set; }

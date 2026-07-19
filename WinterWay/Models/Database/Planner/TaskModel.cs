@@ -15,6 +15,8 @@ namespace WinterWay.Models.Database.Planner
         public string Color { get; set; } = string.Empty;
         public int MaxCounter { get; set; }
         public int SortOrder { get; set; }
+        public DistributionScale? PlannedScale { get; set; }
+        public DateOnly? PlannedDate { get; set; }
         public DateTime CreationDate { get; set; }
         public DateTime? ClosingDate { get; set; }
 

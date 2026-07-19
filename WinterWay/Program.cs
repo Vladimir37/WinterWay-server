@@ -77,6 +77,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<RollService>();
+builder.Services.AddScoped<DistributionService>();
 builder.Services.AddScoped<CompleteTaskService>();
 builder.Services.AddScoped<DateTimeService>();
 builder.Services.AddScoped<CalendarService>();

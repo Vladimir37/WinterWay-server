@@ -18,18 +18,36 @@ namespace WinterWay.Controllers.Planner
         private readonly ApplicationContext _db;
         private readonly UserManager<UserModel> _userManager;
         private readonly RollService _rollService;
+        private readonly DistributionService _distributionService;
 
-        public BoardController(ApplicationContext db, UserManager<UserModel> userManager, RollService rollService)
+        public BoardController(ApplicationContext db, UserManager<UserModel> userManager, RollService rollService, DistributionService distributionService)
         {
             _db = db;
             _userManager = userManager;
             _rollService = rollService;
+            _distributionService = distributionService;
+        }
+
+        private static DistributionScale CombineModes(List<DistributionScale> modes)
+        {
+            var combined = DistributionScale.None;
+            foreach (var mode in modes)
+            {
+                combined |= mode;
+            }
+            return combined;
         }
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateBoard([FromBody] CreateBoardDTO createBoardForm)
         {
             var user = await _userManager.GetUserAsync(User);
+
+            var distributionModes = CombineModes(createBoardForm.DistributionModes);
+            if (!_distributionService.ValidateModes(distributionModes, createBoardForm.RollType, createBoardForm.RollDays))
+            {
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Distribution modes are not allowed for this roll type"));
+            }
 
             var boardsTotal = await _db.Boards
                 .Where(b => b.UserId == user!.Id)
@@ -42,6 +60,7 @@ namespace WinterWay.Controllers.Planner
                 RollType = createBoardForm.RollType,
                 RollStart = createBoardForm.RollStart,
                 RollDays = createBoardForm.RollDays,
+                DistributionModes = distributionModes,
                 CurrentSprintNumber = 0,
                 Color = createBoardForm.Color,
                 IsBacklog = false,
@@ -76,13 +95,35 @@ namespace WinterWay.Controllers.Planner
                 return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Board does not exists"));
             }
 
+            var distributionModes = CombineModes(editBoardForm.DistributionModes);
+            if (!_distributionService.ValidateModes(distributionModes, editBoardForm.RollType, editBoardForm.RollDays))
+            {
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Distribution modes are not allowed for this roll type"));
+            }
+
             targetBoard.Name = editBoardForm.Name;
             targetBoard.RollType = editBoardForm.RollType;
             targetBoard.RollStart = editBoardForm.RollStart;
             targetBoard.RollDays = editBoardForm.RollDays;
+            targetBoard.DistributionModes = distributionModes;
             targetBoard.Color = editBoardForm.Color;
             targetBoard.Favorite = editBoardForm.Favorite;
             targetBoard.NotificationActive = editBoardForm.NotificationActive;
+
+            var plannedTasks = await _db.Tasks
+                .Where(t => t.BoardId == targetBoard.Id)
+                .Where(t => t.PlannedScale != null)
+                .ToListAsync();
+
+            foreach (var task in plannedTasks)
+            {
+                if ((distributionModes & task.PlannedScale!.Value) != task.PlannedScale.Value)
+                {
+                    task.PlannedScale = null;
+                    task.PlannedDate = null;
+                }
+            }
+
             await _db.SaveChangesAsync();
             return Ok(targetBoard);
         }

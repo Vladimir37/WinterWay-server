@@ -18,12 +18,16 @@ namespace WinterWay.Controllers.Planner
         private readonly ApplicationContext _db;
         private readonly UserManager<UserModel> _userManager;
         private readonly CompleteTaskService _completeTaskService;
+        private readonly DistributionService _distributionService;
+        private readonly DateTimeService _dateTimeService;
 
-        public TaskController(ApplicationContext db, UserManager<UserModel> userManager, CompleteTaskService completeTaskService)
+        public TaskController(ApplicationContext db, UserManager<UserModel> userManager, CompleteTaskService completeTaskService, DistributionService distributionService, DateTimeService dateTimeService)
         {
             _db = db;
             _userManager = userManager;
             _completeTaskService = completeTaskService;
+            _distributionService = distributionService;
+            _dateTimeService = dateTimeService;
         }
 
         [HttpPost("create")]
@@ -158,6 +162,8 @@ namespace WinterWay.Controllers.Planner
             targetTask.BoardId = moveTaskForm.BoardId;
             targetTask.SprintId = moveTaskForm.SprintId;
             targetTask.SortOrder = tasksInSprintInStatusCount;
+            targetTask.PlannedScale = null;
+            targetTask.PlannedDate = null;
             await _db.SaveChangesAsync();
 
             var otherTasksInOldSprint = await _db.Tasks
@@ -209,6 +215,51 @@ namespace WinterWay.Controllers.Planner
 
             await _completeTaskService.SortAllTasks(otherTasksWithOldStatus);
 
+            return Ok(targetTask);
+        }
+
+        [HttpPost("set-plan")]
+        public async Task<IActionResult> SetTaskPlan([FromBody] SetTaskPlanDTO setPlanForm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var targetTask = await _db.Tasks
+                .Include(t => t.Board)
+                .Include(t => t.Sprint)
+                .Where(t => t.Id == setPlanForm.TaskId)
+                .Where(t => t.Board.UserId == user!.Id)
+                .Where(t => !t.Board.IsBacklog)
+                .Where(t => !t.IsTemplate)
+                .Where(t => t.SprintId != null)
+                .Where(t => t.Sprint!.Active)
+                .FirstOrDefaultAsync();
+
+            if (targetTask == null)
+            {
+                return BadRequest(new ApiErrorDTO(InternalError.ElementNotFound, "Available task does not exists"));
+            }
+
+            if (setPlanForm.PlannedScale == null)
+            {
+                targetTask.PlannedScale = null;
+                targetTask.PlannedDate = null;
+                await _db.SaveChangesAsync();
+                return Ok(targetTask);
+            }
+
+            if (setPlanForm.PlannedDate == null || !_dateTimeService.ParseDate(setPlanForm.PlannedDate, out DateOnly plannedDate))
+            {
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Invalid date format"));
+            }
+
+            if (!_distributionService.ValidatePlan(targetTask.Board, targetTask.Sprint!, setPlanForm.PlannedScale.Value, plannedDate))
+            {
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Distribution scale is not enabled or the date is outside the sprint period"));
+            }
+
+            targetTask.PlannedScale = setPlanForm.PlannedScale.Value;
+            targetTask.PlannedDate = plannedDate;
+            await _db.SaveChangesAsync();
             return Ok(targetTask);
         }
 

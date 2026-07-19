@@ -17,5 +17,6 @@ namespace WinterWay.Models.DTOs.Requests.Planner
         public string Color { get; set; } = string.Empty;
         [Required]
         public int RollDays { get; set; }
+        public List<DistributionScale> DistributionModes { get; set; } = new List<DistributionScale>();
     }
 }

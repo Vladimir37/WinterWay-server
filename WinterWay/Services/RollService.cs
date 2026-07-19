@@ -105,6 +105,8 @@ namespace WinterWay.Services
                     task.Board = backlogSprint.Board;
                     task.IsDone = false;
                     task.SortOrder = tasksInBacklogCount;
+                    task.PlannedScale = null;
+                    task.PlannedDate = null;
                     tasksInBacklogCount++;
                 }
                 await _db.SaveChangesAsync();
@@ -133,6 +135,8 @@ namespace WinterWay.Services
                     task.Sprint = sprint;
                     task.IsDone = false;
                     task.SortOrder = tasksInSprintCount;
+                    task.PlannedScale = null;
+                    task.PlannedDate = null;
                     tasksInSprintCount++;
                 }
 

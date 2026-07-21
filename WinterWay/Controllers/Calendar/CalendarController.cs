@@ -40,6 +40,7 @@ namespace WinterWay.Controllers.Calendar
             {
                 Name = createCalendarForm.Name,
                 Type = createCalendarForm.Type,
+                Period = createCalendarForm.Period,
                 Color = createCalendarForm.Color,
                 SortOrder = calendarsTotal,
                 Archived = false,
@@ -394,8 +395,11 @@ namespace WinterWay.Controllers.Calendar
         {
             var user = await _userManager.GetUserAsync(User);
 
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var weekAnchor = CalendarService.GetPeriodAnchor(today, CalendarPeriod.Week);
+            var monthAnchor = CalendarService.GetPeriodAnchor(today, CalendarPeriod.Month);
+
             var allCalendars = await _db.Calendars
-                .Include(c => c.CalendarRecords.Where(cr => cr.Date == DateOnly.FromDateTime(DateTime.UtcNow)))
                 .Include(c => c.DefaultRecord)
                     .ThenInclude(cr => cr.BooleanVal)
                 .Include(c => c.DefaultRecord)
@@ -406,6 +410,17 @@ namespace WinterWay.Controllers.Calendar
                     .ThenInclude(cr => cr.FixedVal)
                         .ThenInclude(crf => crf.FixedValue)
                 .Where(c => c.UserId == user!.Id)
+                .ToListAsync();
+
+            await _db.CalendarRecords
+                .Include(cr => cr.Calendar)
+                .Where(cr => cr.Calendar.UserId == user!.Id)
+                .Where(cr => !cr.IsDefault)
+                .Where(cr =>
+                    (cr.Calendar.Period == CalendarPeriod.Day && cr.Date == today) ||
+                    (cr.Calendar.Period == CalendarPeriod.Week && cr.Date == weekAnchor) ||
+                    (cr.Calendar.Period == CalendarPeriod.Month && cr.Date == monthAnchor)
+                )
                 .ToListAsync();
 
             return Ok(allCalendars);

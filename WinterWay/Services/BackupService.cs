@@ -6,6 +6,7 @@ using WinterWay.Data;
 using WinterWay.Enums;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.Database.Calendar;
+using WinterWay.Models.Database.Mood;
 using WinterWay.Models.Database.Planner;
 using WinterWay.Models.DTOs.Responses.Shared;
 
@@ -92,6 +93,15 @@ namespace WinterWay.Services
                         record.FixedVal = null;
                     }
                 }
+
+                foreach (var moodRecord in user.MoodRecords)
+                {
+                    if (moodRecord.TagId != null)
+                    {
+                        moodRecord.Tag = user.MoodTags.First(t => t.Id == moodRecord.TagId);
+                        moodRecord.TagId = null;
+                    }
+                }
                 
                 _db.Users.Add(user);
                 _db.SaveChanges();
@@ -168,6 +178,9 @@ namespace WinterWay.Services
                 .Include(u => u.DiaryRecords)
                     .ThenInclude(dr => dr.Groups)
                         .ThenInclude(dg => dg.Activities)
+                // Mood
+                .Include(u => u.MoodTags)
+                .Include(u => u.MoodRecords)
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             var userJson = JsonSerializer.Serialize(user);

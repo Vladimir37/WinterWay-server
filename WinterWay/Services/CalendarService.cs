@@ -15,6 +15,36 @@ namespace WinterWay.Services
             _db = db;
         }
 
+        public static DateOnly GetPeriodAnchor(DateOnly date, CalendarPeriod period)
+        {
+            return period switch
+            {
+                CalendarPeriod.Week => date.AddDays(-((7 + (int)date.DayOfWeek - 1) % 7)),
+                CalendarPeriod.Month => new DateOnly(date.Year, date.Month, 1),
+                _ => date
+            };
+        }
+
+        public static DateOnly GetPeriodLastDay(DateOnly date, CalendarPeriod period)
+        {
+            return period switch
+            {
+                CalendarPeriod.Week => GetPeriodAnchor(date, period).AddDays(6),
+                CalendarPeriod.Month => new DateOnly(date.Year, date.Month, DateTime.DaysInMonth(date.Year, date.Month)),
+                _ => date
+            };
+        }
+
+        public static DateOnly GetNextAnchor(DateOnly anchor, CalendarPeriod period)
+        {
+            return period switch
+            {
+                CalendarPeriod.Week => anchor.AddDays(7),
+                CalendarPeriod.Month => anchor.AddMonths(1),
+                _ => anchor.AddDays(1)
+            };
+        }
+
         public async Task<bool> Validate(string val, int calendarId, CalendarType calendarType)
         {
             return calendarType switch

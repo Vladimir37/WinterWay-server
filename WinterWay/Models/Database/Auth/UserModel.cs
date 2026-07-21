@@ -2,6 +2,7 @@
 using WinterWay.Enums;
 using WinterWay.Models.Database.Calendar;
 using WinterWay.Models.Database.Diary;
+using WinterWay.Models.Database.Mood;
 using WinterWay.Models.Database.Notification;
 using WinterWay.Models.Database.Planner;
 using WinterWay.Models.Database.Timer;
@@ -21,5 +22,7 @@ namespace WinterWay.Models.Database.Auth
         public List<NotificationModel> Notifications { get; set; } = new List<NotificationModel>();
         public List<DiaryGroupModel> DiaryGroups { get; set; } = new List<DiaryGroupModel>();
         public List<DiaryRecordModel> DiaryRecords { get; set; } = new List<DiaryRecordModel>();
+        public List<MoodTagModel> MoodTags { get; set; } = new List<MoodTagModel>();
+        public List<MoodRecordModel> MoodRecords { get; set; } = new List<MoodRecordModel>();
     }
 }

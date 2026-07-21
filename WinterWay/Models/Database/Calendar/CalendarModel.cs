@@ -9,6 +9,7 @@ namespace WinterWay.Models.Database.Calendar
         public int Id { get; set; }
         public string Name { get; set; }
         public CalendarType Type { get; set; }
+        public CalendarPeriod Period { get; set; }
         public string? Color { get; set; }
         public int SortOrder { get; set; }
         public bool Archived { get; set; }

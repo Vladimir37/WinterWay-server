@@ -67,27 +67,42 @@ namespace WinterWay.Services
                 .ToListAsync();
 
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var weekAnchor = CalendarService.GetPeriodAnchor(today, CalendarPeriod.Week);
+            var monthAnchor = CalendarService.GetPeriodAnchor(today, CalendarPeriod.Month);
+            var anchors = new[] { today, weekAnchor, monthAnchor };
 
-            var allTodayRecords = await _db.CalendarRecords
+            var currentPeriodRecords = await _db.CalendarRecords
                 .Include(cr => cr.Calendar)
-                .Where(cr => cr.Date == today)
                 .Where(cr => cr.Calendar.UserId == userId)
+                .Where(cr => !cr.IsDefault)
+                .Where(cr => cr.Date != null && anchors.Contains(cr.Date.Value))
                 .ToListAsync();
 
             var targetCalendars = await _db.Calendars
                 .Where(c => c.UserId == userId)
                 .Where(c => !c.Archived)
                 .ToListAsync();
-            
-            var filteredCalendars = targetCalendars
-                .Where(c => allTodayRecords.All(cr => cr.CalendarId != c.Id))
-                .Where(c => !allUserNotification
-                    .Any(n => n.EntityId == c.Id && DateOnly.FromDateTime(n.CreationDate) == today)
-                )
-                .ToList(); 
-            
-            foreach (var calendar in filteredCalendars)
+
+            foreach (var calendar in targetCalendars)
             {
+                if (today != CalendarService.GetPeriodLastDay(today, calendar.Period))
+                {
+                    continue;
+                }
+
+                var anchor = CalendarService.GetPeriodAnchor(today, calendar.Period);
+
+                var recordExists = currentPeriodRecords
+                    .Any(cr => cr.CalendarId == calendar.Id && cr.Date == anchor);
+
+                var notificationExists = allUserNotification
+                    .Any(n => n.EntityId == calendar.Id && DateOnly.FromDateTime(n.CreationDate) == today);
+
+                if (recordExists || notificationExists)
+                {
+                    continue;
+                }
+
                 var newNotification = await CreateNotification(NotificationType.CalendarRecordForToday, calendar.Id, userId);
                 if (newNotification != null)
                 {
@@ -254,7 +269,14 @@ namespace WinterWay.Services
                 return null;
             }
 
-            return $"You haven’t entered any data for today in the \"{targetCalendar.Name}\" calendar";
+            var period = targetCalendar.Period switch
+            {
+                CalendarPeriod.Week => "this week",
+                CalendarPeriod.Month => "this month",
+                _ => "today"
+            };
+
+            return $"You haven’t entered any data for {period} in the \"{targetCalendar.Name}\" calendar";
         }
         
         private async Task<string?> GetNotificationTaskMessage(int entityId, string userId)

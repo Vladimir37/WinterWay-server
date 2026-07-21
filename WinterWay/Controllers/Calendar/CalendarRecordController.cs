@@ -59,14 +59,16 @@ namespace WinterWay.Controllers.Calendar
                 return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "Invalid date format"));
             }
 
+            var targetAnchor = CalendarService.GetPeriodAnchor(targetDay, targetCalendar.Period);
+
             var isDateAlreadyExists = await _db.CalendarRecords
                 .Where(cr => cr.CalendarId == targetCalendar.Id)
-                .Where(cr => cr.Date == targetDay)
+                .Where(cr => cr.Date == targetAnchor)
                 .AnyAsync();
 
             if (isDateAlreadyExists)
             {
-                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "A record for this day already exists in this calendar"));
+                return BadRequest(new ApiErrorDTO(InternalError.InvalidForm, "A record for this period already exists in this calendar"));
             }
 
             if (!await _calendarService.Validate(createCalendarRecordForm.SerializedValue, targetCalendar.Id, targetCalendar.Type))
@@ -77,7 +79,7 @@ namespace WinterWay.Controllers.Calendar
             var newRecord = _calendarService.GetCalendarRecord(
                 createCalendarRecordForm.CalendarId,
                 false,
-                targetDay,
+                targetAnchor,
                 createCalendarRecordForm.Text,
                 targetCalendar.Type,
                 createCalendarRecordForm.SerializedValue
@@ -103,7 +105,11 @@ namespace WinterWay.Controllers.Calendar
 
                 List<CalendarRecordModel> daysBetween = new List<CalendarRecordModel>();
 
-                for (var stepDay = lastCalendarRecord.Date!.Value.AddDays(1); stepDay < newRecord.Date; stepDay = stepDay.AddDays(1))
+                for (
+                    var stepDay = CalendarService.GetNextAnchor(lastCalendarRecord.Date!.Value, targetCalendar.Period);
+                    stepDay < newRecord.Date;
+                    stepDay = CalendarService.GetNextAnchor(stepDay, targetCalendar.Period)
+                )
                 {
                     var dayBetweenRecord = _calendarService.GetRecordCopy(targetCalendar.DefaultRecord, stepDay, targetCalendar.Type);
                     daysBetween.Add(dayBetweenRecord);

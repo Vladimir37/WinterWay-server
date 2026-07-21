@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WinterWay.Models.Database.Auth;
 using WinterWay.Models.Database.Calendar;
 using WinterWay.Models.Database.Diary;
+using WinterWay.Models.Database.Mood;
 using WinterWay.Models.Database.Notification;
 using WinterWay.Models.Database.Planner;
 using WinterWay.Models.Database.Timer;
@@ -34,6 +35,8 @@ namespace WinterWay.Data
         public DbSet<DiaryRecordModel> DiaryRecords { get; set; }
         public DbSet<DiaryRecordGroupModel> DiaryRecordGroups { get; set; }
         public DbSet<DiaryRecordActivityModel> DiaryRecordActivities { get; set; }
+        public DbSet<MoodTagModel> MoodTags { get; set; }
+        public DbSet<MoodRecordModel> MoodRecords { get; set; }
 
         public ApplicationContext(DbContextOptions<ApplicationContext> options)
             : base(options)
@@ -64,6 +67,12 @@ namespace WinterWay.Data
                 .HasOne(r => r.Calendar)
                 .WithMany(c => c.CalendarRecords)
                 .HasForeignKey(r => r.CalendarId);
+
+            builder.Entity<MoodRecordModel>()
+                .HasOne(r => r.Tag)
+                .WithMany(t => t.Records)
+                .HasForeignKey(r => r.TagId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

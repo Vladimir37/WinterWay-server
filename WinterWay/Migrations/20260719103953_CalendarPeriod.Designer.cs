@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WinterWay.Data;
@@ -11,9 +12,11 @@ using WinterWay.Data;
 namespace WinterWay.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20260719103953_CalendarPeriod")]
+    partial class CalendarPeriod
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -570,79 +573,6 @@ namespace WinterWay.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("DiaryRecords");
-                });
-
-            modelBuilder.Entity("WinterWay.Models.Database.Mood.MoodRecordModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
-
-                    b.Property<int?>("TagId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TagId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("MoodRecords");
-                });
-
-            modelBuilder.Entity("WinterWay.Models.Database.Mood.MoodTagModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Archived")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Color")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("MoodTags");
                 });
 
             modelBuilder.Entity("WinterWay.Models.Database.Notification.NotificationModel", b =>
@@ -1276,35 +1206,6 @@ namespace WinterWay.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("WinterWay.Models.Database.Mood.MoodRecordModel", b =>
-                {
-                    b.HasOne("WinterWay.Models.Database.Mood.MoodTagModel", "Tag")
-                        .WithMany("Records")
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("WinterWay.Models.Database.Auth.UserModel", "User")
-                        .WithMany("MoodRecords")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tag");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("WinterWay.Models.Database.Mood.MoodTagModel", b =>
-                {
-                    b.HasOne("WinterWay.Models.Database.Auth.UserModel", "User")
-                        .WithMany("MoodTags")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("WinterWay.Models.Database.Notification.NotificationModel", b =>
                 {
                     b.HasOne("WinterWay.Models.Database.Auth.UserModel", "User")
@@ -1449,10 +1350,6 @@ namespace WinterWay.Migrations
 
                     b.Navigation("DiaryRecords");
 
-                    b.Navigation("MoodRecords");
-
-                    b.Navigation("MoodTags");
-
                     b.Navigation("Notifications");
 
                     b.Navigation("Timers");
@@ -1501,11 +1398,6 @@ namespace WinterWay.Migrations
             modelBuilder.Entity("WinterWay.Models.Database.Diary.DiaryRecordModel", b =>
                 {
                     b.Navigation("Groups");
-                });
-
-            modelBuilder.Entity("WinterWay.Models.Database.Mood.MoodTagModel", b =>
-                {
-                    b.Navigation("Records");
                 });
 
             modelBuilder.Entity("WinterWay.Models.Database.Planner.BoardModel", b =>

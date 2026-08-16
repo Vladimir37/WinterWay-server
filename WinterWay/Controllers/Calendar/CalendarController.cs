@@ -409,11 +409,11 @@ namespace WinterWay.Controllers.Calendar
                 .Include(c => c.DefaultRecord)
                     .ThenInclude(cr => cr.FixedVal)
                         .ThenInclude(crf => crf.FixedValue)
+                .Include(c => c.CalendarValues)
                 .Where(c => c.UserId == user!.Id)
                 .ToListAsync();
 
-            await _db.CalendarRecords
-                .Include(cr => cr.Calendar)
+            var currentPeriodRecords = await _db.CalendarRecords
                 .Where(cr => cr.Calendar.UserId == user!.Id)
                 .Where(cr => !cr.IsDefault)
                 .Where(cr =>
@@ -422,6 +422,28 @@ namespace WinterWay.Controllers.Calendar
                     (cr.Calendar.Period == CalendarPeriod.Month && cr.Date == monthAnchor)
                 )
                 .ToListAsync();
+
+            // Assigned explicitly rather than relying on EF's automatic navigation
+            // fixup: `CalendarModel.DefaultRecord` and `CalendarModel.CalendarRecords`
+            // are two distinct relationships to the same `CalendarRecordModel` type,
+            // both keyed off `CalendarRecordModel.CalendarId`. Once a calendar's
+            // `DefaultRecord` is `Include`d above, EF's change tracker also fixes up
+            // the *other* relationship purely because the FK values match - silently
+            // stuffing the default (template) record into `CalendarRecords` even
+            // though it's excluded by the `!cr.IsDefault` filter here. That made
+            // `CalendarRecords` non-empty (hiding the dashboard's "add entry" button)
+            // for any calendar with a default value configured, regardless of whether
+            // it actually had an entry for the current period.
+            var currentPeriodRecordsByCalendarId = currentPeriodRecords
+                .GroupBy(cr => cr.CalendarId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            foreach (var calendar in allCalendars)
+            {
+                calendar.CalendarRecords = currentPeriodRecordsByCalendarId.TryGetValue(calendar.Id, out var records)
+                    ? records
+                    : new List<CalendarRecordModel>();
+            }
 
             return Ok(allCalendars);
         }
